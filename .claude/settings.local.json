@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm *)",
+      "PowerShell(Write-Output \"=== versions ===\"; node -e \"console.log\\('supabase-js', require\\('@supabase/supabase-js/package.json'\\).version\\); console.log\\('ssr', require\\('@supabase/ssr/package.json'\\).version\\)\")",
+      "PowerShell(Get-Content *)",
+      "Bash(npm run *)",
+      "PowerShell(try { $p = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction Stop\\).OwningProcess; Stop-Process -Id $p -Force; Write-Output \"Stopped dev server \\(PID $p\\)\" } catch { Write-Output \"No listener on 3000\" })",
+      "PowerShell(try { $p = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction Stop\\).OwningProcess; Stop-Process -Id $p -Force; Write-Output \"Stopped dev \\(PID $p\\)\" } catch { Write-Output \"No listener on 3000\" })",
+      "PowerShell(npm run *)",
+      "Bash(curl -s http://localhost:3000/manifest.webmanifest)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{content_type}\\\\n\" http://localhost:3000/apple-icon)",
+      "Skill(claude-api)",
+      "Bash(curl -s -X POST http://localhost:3000/api/coach -H \"Content-Type: application/json\" -d '{\"message\":\"I am getting really tired\",\"context\":{\"goal\":\"tempo\",\"elapsed\":900,\"distanceKm\":3.1,\"currentPace\":300,\"targetPace\":300,\"heartRate\":182,\"cadence\":176}}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} -> %{redirect_url}\\\\n\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST http://localhost:3000/api/coach -H \"Content-Type: application/json\" -d '{\"message\":\"hi\",\"context\":{\"goal\":\"easy\",\"elapsed\":1,\"distanceKm\":0,\"currentPace\":360,\"targetPace\":360,\"heartRate\":120,\"cadence\":170}}')",
+      "Bash(git add *)",
+      "Bash(git -c user.name=Rishi -c user.email=rishi.patel01@gmail.com commit -q -m ' *)",
+      "Bash(git --no-pager log --oneline -2)",
+      "Bash(git --no-pager log --oneline -- .env.local)",
+      "Bash(git -c user.name=Rishi -c user.email=rishi.patel01@gmail.com commit -q -m 'Add .env.example template for contributors and Vercel setup *)",
+      "Bash(git --no-pager log --oneline -3)",
+      "Bash(git remote)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git grep *)"
+    ]
+  }
+}

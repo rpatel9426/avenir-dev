@@ -1,0 +1,187 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+  Avenir design system
+  --------------------
+  Premium fitness aesthetic. Dark by default, near-black canvas with a single
+  electric-lime signature accent used sparingly for energy and calls-to-action.
+  Colours are authored in OKLCH for perceptually even gradients and contrast.
+*/
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.9rem;
+
+  /* Light theme (kept minimal — the product is dark-first). */
+  --background: oklch(0.99 0.004 240);
+  --foreground: oklch(0.16 0.02 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.02 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.02 260);
+  --primary: oklch(0.62 0.16 145);
+  --primary-foreground: oklch(0.99 0.01 145);
+  --secondary: oklch(0.96 0.01 260);
+  --secondary-foreground: oklch(0.22 0.02 260);
+  --muted: oklch(0.96 0.01 260);
+  --muted-foreground: oklch(0.52 0.02 260);
+  --accent: oklch(0.96 0.03 145);
+  --accent-foreground: oklch(0.22 0.02 260);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.99 0.01 27);
+  --border: oklch(0.9 0.01 260);
+  --input: oklch(0.9 0.01 260);
+  --ring: oklch(0.62 0.16 145);
+}
+
+.dark {
+  /* Canvas — a cool, deep near-black with a faint blue undertone. */
+  --background: oklch(0.16 0.014 264);
+  --foreground: oklch(0.97 0.005 260);
+
+  /* Surfaces sit just above the canvas so cards read as lifted glass. */
+  --card: oklch(0.2 0.016 264);
+  --card-foreground: oklch(0.97 0.005 260);
+  --popover: oklch(0.19 0.016 264);
+  --popover-foreground: oklch(0.97 0.005 260);
+
+  /* Signature accent — electric lime. Reserved for energy + primary actions. */
+  --primary: oklch(0.88 0.19 128);
+  --primary-foreground: oklch(0.22 0.05 145);
+
+  --secondary: oklch(0.26 0.018 264);
+  --secondary-foreground: oklch(0.97 0.005 260);
+  --muted: oklch(0.26 0.018 264);
+  --muted-foreground: oklch(0.68 0.014 264);
+
+  /* A cool violet secondary accent for AI / coaching moments. */
+  --accent: oklch(0.62 0.17 285);
+  --accent-foreground: oklch(0.98 0.01 285);
+
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.98 0.01 25);
+
+  --border: oklch(0.3 0.016 264 / 60%);
+  --input: oklch(0.3 0.016 264 / 80%);
+  --ring: oklch(0.88 0.19 128 / 60%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+  --font-serif: var(--font-serif), ui-serif, Georgia, serif;
+
+  --animate-shimmer: shimmer 2.5s linear infinite;
+  --animate-marquee: marquee 32s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Respect device safe areas on notched phones. */
+    overscroll-behavior-y: none;
+  }
+
+  /*
+   * Every live metric renders in the monospace face, tabular, slightly tightened
+   * — the "instrument readout" look. Because all metrics already carry this
+   * class, this single rule makes the whole product read as a technical device.
+   */
+  .tabular-nums {
+    font-family: var(--font-mono), ui-monospace, "SF Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    letter-spacing: -0.02em;
+  }
+
+  /* Editorial serif — used only for accent words in display headlines. */
+  .font-editorial {
+    font-family: var(--font-serif), ui-serif, Georgia, serif;
+  }
+
+  /* Uppercase technical microlabel (coordinates, "DAY 6 OF 80", etc). */
+  .label-mono {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.65rem;
+  }
+}
+
+/* A soft radial "aurora" used behind hero + coaching surfaces. */
+.aurora {
+  background-image:
+    radial-gradient(60% 60% at 20% 0%, oklch(0.88 0.19 128 / 0.12) 0%, transparent 60%),
+    radial-gradient(50% 50% at 90% 10%, oklch(0.62 0.17 285 / 0.14) 0%, transparent 55%);
+}
+
+/* Frosted-glass surface used on nav + coaching cards. */
+.glass {
+  background-color: oklch(0.2 0.016 264 / 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Thin, tasteful scrollbars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
