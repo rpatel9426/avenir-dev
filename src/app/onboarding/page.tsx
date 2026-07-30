@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -28,7 +28,7 @@ const TOTAL_STEPS = 5;
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [pending, startTransition] = useTransition();
+  const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState("");
   const [experience, setExperience] = useState<ExperienceLevel | null>(null);
@@ -44,17 +44,25 @@ export default function OnboardingPage() {
     weeklyKm !== null,
   ][step];
 
-  const finish = () => {
-    startTransition(async () => {
+  /**
+   * Save the answers, then leave onboarding. The navigation stays OUTSIDE a
+   * transition on purpose: `router.push` followed by `router.refresh()` inside
+   * one never settled, so the button span spun forever and the runner could
+   * never reach the dashboard. `replace` also keeps onboarding out of history.
+   */
+  const finish = async () => {
+    setSaving(true);
+    try {
       await completeOnboarding({
         displayName: name.trim() || "Runner",
         experience: experience ?? "intermediate",
         weeklyGoalKm: weeklyKm ?? 30,
         preferredPaceSecPerKm: null,
       });
-      router.push("/dashboard");
-      router.refresh();
-    });
+    } catch {
+      // Never strand the runner on the last step — the profile is editable later.
+    }
+    router.replace("/dashboard");
   };
 
   const next = () => (step < TOTAL_STEPS - 1 ? setStep((s) => s + 1) : finish());
@@ -209,9 +217,9 @@ export default function OnboardingPage() {
           size="lg"
           className="w-full"
           onClick={next}
-          disabled={!canAdvance || pending}
+          disabled={!canAdvance || saving}
         >
-          {pending ? (
+          {saving ? (
             <Loader2 className="animate-spin" />
           ) : step === TOTAL_STEPS - 1 ? (
             <>

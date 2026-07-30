@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, MailCheck } from "lucide-react";
 import { signUp, type AuthResult } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,27 @@ function SubmitButton() {
 
 export default function SignupPage() {
   const [state, formAction] = useActionState<AuthResult, FormData>(signUp, {});
+
+  if (state.checkEmail) {
+    return (
+      <div className="text-center">
+        <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <MailCheck className="size-6" />
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+        <p className="mx-auto mt-2 max-w-xs text-sm text-muted-foreground">
+          We&apos;ve sent you a confirmation link. Open it and Avenir will pick
+          up right where you left off.
+        </p>
+        <p className="mt-6 text-sm text-muted-foreground">
+          Already confirmed?{" "}
+          <Link href="/login" className="font-medium text-primary hover:underline">
+            Log in
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>
