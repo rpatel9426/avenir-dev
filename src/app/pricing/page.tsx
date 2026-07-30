@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: "Run coached for free. Talk to your coach with Avenir Premium.",
 };
 
+// Reflects the signed-in user's current plan — must render per-request.
+export const dynamic = "force-dynamic";
+
 export default async function PricingPage() {
   const profile = await getProfile();
   const premium = isPremium(profile);

@@ -1,5 +1,9 @@
 import { BottomNav } from "@/components/app/bottom-nav";
 
+// Authenticated app pages depend on the signed-in user (cookies) — they must be
+// rendered per-request, never statically prerendered/cached as a demo snapshot.
+export const dynamic = "force-dynamic";
+
 export default function AppLayout({
   children,
 }: {

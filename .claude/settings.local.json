@@ -28,7 +28,20 @@
       "Bash(git remote *)",
       "Bash(git push *)",
       "Bash(git checkout *)",
-      "Bash(git grep *)"
+      "Bash(git grep *)",
+      "Bash(git branch *)",
+      "Bash(git --no-pager log --oneline)",
+      "Bash(git --no-pager log -p)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' https://avenir-dev.vercel.app/)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' https://avenir-dev.vercel.app/pricing)",
+      "Bash(curl -s -o /dev/null -w '%{http_code} %{content_type}\\\\n' https://avenir-dev.vercel.app/manifest.webmanifest)",
+      "Bash(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}\\\\n' https://avenir-dev.vercel.app/dashboard)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' -X POST https://avenir-dev.vercel.app/api/coach -H 'Content-Type: application/json' -d '{\"message\":\"hi\",\"context\":{\"goal\":\"easy\",\"elapsed\":1,\"distanceKm\":0,\"currentPace\":360,\"targetPace\":360,\"heartRate\":120,\"cadence\":170}}')",
+      "Bash(curl -s https://avenir-dev.vercel.app/login)",
+      "Bash(curl -s -X POST https://avenir-dev.vercel.app/api/coach -H 'Content-Type: application/json' -d '{\"message\":\"how am I doing\",\"context\":{\"goal\":\"easy\",\"elapsed\":300,\"distanceKm\":1,\"currentPace\":360,\"targetPace\":360,\"heartRate\":140,\"cadence\":170}}')",
+      "Bash(echo \"=== /dashboard \\(want: 307 -> /login\\) ===\")",
+      "Bash(echo \"=== /api/coach logged-out \\(want: 401\\) ===\")",
+      "Bash(git -c user.name=Rishi -c user.email=rishi.patel01@gmail.com commit -q -m 'Force dynamic rendering on authenticated pages *)"
     ]
   }
 }
