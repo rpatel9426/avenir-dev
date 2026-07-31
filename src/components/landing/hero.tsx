@@ -14,7 +14,7 @@ export function Hero() {
       {/* Ambient aurora glow + topographic contour texture. */}
       <div className="aurora pointer-events-none absolute inset-0 -z-10" />
       <Topo className="absolute -right-40 -top-24 -z-10 h-[36rem] w-[36rem] text-border/50" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
 
       <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
         <motion.div
@@ -23,7 +23,7 @@ export function Hero() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           <Badge variant="outline" className="label-mono mb-6 backdrop-blur">
-            <Sparkles className="size-3.5 text-primary" />
+            <Sparkles className="size-3.5 text-accent" />
             AI coaching, in your ear
           </Badge>
         </motion.div>
@@ -35,7 +35,7 @@ export function Hero() {
           transition={{ duration: 0.7, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
         >
           Every run,{" "}
-          <span className="font-editorial bg-gradient-to-r from-primary via-primary to-accent bg-clip-text italic tracking-normal text-transparent">
+          <span className="font-editorial italic tracking-normal text-accent">
             perfectly&nbsp;coached
           </span>
           .

@@ -15,7 +15,7 @@ const PHRASES = [
 export function Marquee() {
   const items = [...PHRASES, ...PHRASES];
   return (
-    <div className="relative flex overflow-hidden border-y border-border bg-primary/[0.06] py-4">
+    <div className="relative flex overflow-hidden border-y border-border bg-accent-wash py-4">
       <div className="flex shrink-0 animate-marquee items-center gap-6 whitespace-nowrap pr-6">
         {items.map((phrase, i) => (
           <span key={i} className="flex items-center gap-6">

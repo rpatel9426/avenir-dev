@@ -13,7 +13,9 @@ export function ProgressRing({
   stroke = 10,
   children,
   trackClassName = "text-secondary",
-  progressClassName = "text-primary",
+  // A ring is a value, and green is reserved for actions and selection — so
+  // progress is drawn in ink and keeps the accent's meaning intact.
+  progressClassName = "text-foreground",
 }: {
   value: number;
   size?: number;

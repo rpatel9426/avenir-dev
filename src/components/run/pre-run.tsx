@@ -53,7 +53,7 @@ export function PreRun({
               className={cn(
                 "flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-colors",
                 selected
-                  ? "border-primary/60 bg-primary/[0.07]"
+                  ? "border-accent/40 bg-accent-wash"
                   : "border-border bg-card/60 hover:border-border"
               )}
             >
@@ -89,7 +89,7 @@ export function PreRun({
                 className={cn(
                   "rounded-xl border py-3 text-center tabular-nums transition-colors",
                   selected
-                    ? "border-primary/60 bg-primary/[0.07] text-foreground"
+                    ? "border-accent/40 bg-accent-wash text-foreground"
                     : "border-border bg-card/60 text-muted-foreground hover:text-foreground"
                 )}
               >

@@ -31,9 +31,9 @@ export function ThemeToggle() {
         )}
       >
         {isDark ? (
-          <Moon className="size-4 text-primary" />
+          <Moon className="size-4 text-accent" />
         ) : (
-          <Sun className="size-4 text-primary" />
+          <Sun className="size-4 text-accent" />
         )}
       </span>
     </button>

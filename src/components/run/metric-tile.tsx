@@ -19,7 +19,7 @@ export function MetricTile({
 }) {
   const accentClass =
     accent === "primary"
-      ? "text-primary"
+      ? "text-accent"
       : accent === "accent"
         ? "text-accent"
         : accent === "destructive"

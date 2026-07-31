@@ -1,75 +1,76 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { goalMeta } from "@/lib/goal-meta";
+import { Metric } from "@/components/ds/atoms";
 import { formatPace } from "@/lib/utils";
+import type { RunGoal } from "@/lib/supabase/types";
 import type { Workout } from "@/lib/workouts";
 
-/** The headline card on the dashboard: the session Avenir recommends today. */
+/** The effort a session sits at, in the runner's language rather than a number. */
+const ZONE: Record<RunGoal, string> = {
+  easy: "Zone 2",
+  recovery: "Zone 1",
+  long: "Zone 2",
+  tempo: "Threshold",
+  intervals: "VO₂ max",
+  race: "Race effort",
+};
+
+/**
+ * Today's session. One question per screen: what do I do today? The card
+ * answers it with a sentence's worth of structure — name, effort, the two
+ * numbers that matter — and nothing else.
+ */
 export function TodaySession({ workout }: { workout: Workout }) {
-  const meta = goalMeta(workout.id);
-  const Icon = meta.icon;
+  const paceLow = formatPace(workout.targetPace);
+  const paceHigh = formatPace(workout.targetPace + 30);
+  const minutes = workout.durationLabel.replace(/[^\d]/g, "");
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <Link href={`/run?w=${workout.id}`} className="block">
-        <div className="aurora relative overflow-hidden rounded-3xl border border-border p-6 transition-transform active:scale-[0.99]">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+    <div className="flex flex-col gap-[18px] rounded-[22px] bg-card p-[22px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border dark:border-border dark:shadow-none">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="t-title">{workout.name}</h2>
+        <span className="t-label rounded-full bg-accent-wash px-2.5 py-1.5 tracking-[0.1em] text-accent">
+          {ZONE[workout.id]}
+        </span>
+      </div>
 
-          <div className="flex items-center gap-2 text-xs font-medium text-primary">
-            <Sparkles className="size-3.5" />
-            Today&apos;s coached session
-          </div>
+      <div className="flex gap-[26px]">
+        <Metric value={minutes} unit=" min" label="Duration" />
+        <Metric value={paceLow} unit={`–${paceHigh}`} label="Pace /km" />
+      </div>
 
-          <div className="mt-4 flex items-center gap-3">
-            <span className={`flex size-12 items-center justify-center rounded-2xl ${meta.bg} ${meta.color}`}>
-              <Icon className="size-6" />
-            </span>
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
-                {workout.name}
-              </h2>
-              <p className="text-sm text-muted-foreground">{workout.tagline}</p>
-            </div>
-          </div>
+      <div className="h-px bg-border" />
 
-          <div className="mt-5 grid grid-cols-3 gap-3 rounded-2xl bg-secondary/40 p-3 text-center">
-            <Stat label="Target pace" value={`${formatPace(workout.targetPace)}`} unit="/km" />
-            <Stat label="Distance" value={`${(workout.distance / 1000).toFixed(0)}`} unit="km" />
-            <Stat label="Duration" value={workout.durationLabel.replace("~", "")} unit="" />
-          </div>
-
-          <div className="mt-5 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              Avenir will coach you live
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-              Start
-              <ArrowRight className="size-4" />
-            </span>
-          </div>
-        </div>
-      </Link>
-    </motion.div>
+      <details className="group">
+        <summary className="open-mark flex cursor-pointer list-none items-center justify-between text-[12.5px] font-medium text-muted-foreground [&::-webkit-details-marker]:hidden">
+          Why this run?
+        </summary>
+        <p className="t-body mt-3 text-muted-foreground">{workout.tagline}</p>
+      </details>
+    </div>
   );
 }
 
-function Stat({ label, value, unit }: { label: string; value: string; unit: string }) {
+/** The primary action. 60px, ink on paper, with the commitment stated on it. */
+export function StartRunAction({ workout }: { workout: Workout }) {
+  const minutes = workout.durationLabel.replace(/[^\d]/g, "");
+
   return (
-    <div>
-      <p className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-0.5 tabular-nums text-lg font-semibold tracking-tight">
-        {value}
-        {unit && <span className="text-xs text-muted-foreground"> {unit}</span>}
-      </p>
+    <div className="flex flex-col gap-3">
+      <Link
+        href={`/run?w=${workout.id}`}
+        className="flex h-15 items-center justify-center gap-2.5 rounded-full bg-primary text-base font-bold text-primary-foreground transition-[filter] duration-[90ms] active:brightness-110"
+      >
+        Start run
+        <span className="text-[13px] font-medium text-primary-foreground/50">
+          {minutes}:00
+        </span>
+      </Link>
+      <Link
+        href="/coach?ask=cant-run"
+        className="text-center text-[12.5px] font-medium text-muted-foreground"
+      >
+        Can&apos;t run today?
+      </Link>
     </div>
   );
 }

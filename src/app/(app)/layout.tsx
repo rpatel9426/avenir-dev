@@ -11,8 +11,8 @@ export default function AppLayout({
 }) {
   return (
     <div className="relative mx-auto min-h-dvh w-full max-w-md">
-      {/* Content area — padded for the floating bottom nav. */}
-      <div className="px-5 pb-28 pt-6">{children}</div>
+      {/* Gutter is 26. Bottom padding clears the word-tab bar. */}
+      <div className="px-gutter pb-36 pt-6">{children}</div>
       <BottomNav />
     </div>
   );

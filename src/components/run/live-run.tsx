@@ -1,30 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Activity,
-  Heart,
-  Loader2,
-  Lock,
-  Mic,
-  MicOff,
-  Mountain,
-  Pause,
-  Play,
-  Sparkles,
-  Square,
-  Volume2,
-  VolumeX,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2, Lock } from "lucide-react";
 import { CoachFeed } from "@/components/run/coach-feed";
-import { MetricTile } from "@/components/run/metric-tile";
-import { ProgressRing } from "@/components/app/progress-ring";
 import { formatDistance, formatDuration, formatPace } from "@/lib/utils";
-import { goalMeta } from "@/lib/goal-meta";
 import { cn } from "@/lib/utils";
 import type { LiveMetrics, RunStatus, CoachLine } from "@/hooks/use-run-session";
 import type { Workout } from "@/lib/workouts";
+
+/* The silent path — a run club, a quiet street, or no breath to spare. */
+const SILENT_CHIPS = ["Something hurts", "This feels hard", "How far left?"];
 
 export function LiveRun({
   workout,
@@ -61,179 +46,134 @@ export function LiveRun({
   onResume: () => void;
   onFinish: () => void;
 }) {
-  const meta = goalMeta(workout.id);
-  const completion = Math.min(1, metrics.distance / workout.distance);
   const paused = status === "paused";
+  const km = Math.max(1, Math.floor(metrics.distance / 1000) + 1);
 
+  // Pace is the one number that has to be true, so it never animates and the
+  // judgement beside it is a word, not a colour.
   const drift = metrics.currentPace - workout.targetPace;
-  const paceAccent =
-    drift > 12 ? "destructive" : drift < -12 ? "accent" : "primary";
+  const verdict =
+    drift > 12 ? "EASING OFF" : drift < -12 ? "AHEAD OF TARGET" : "ON TARGET";
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
+    <div className="flex min-h-[calc(100dvh-3rem)] flex-col gap-5">
+      {/* Status line — what run this is, and the one body signal worth glancing at. */}
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`flex size-9 items-center justify-center rounded-lg ${meta.bg} ${meta.color}`}>
-            <meta.icon className="size-4" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold leading-tight">{workout.name}</p>
-            <p className="text-xs text-muted-foreground">
-              Target {formatPace(workout.targetPace)} /km
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onToggleVoice}
-            aria-label={voiceEnabled ? "Mute coach" : "Unmute coach"}
-            aria-pressed={voiceEnabled}
-            className={cn(
-              "flex size-9 items-center justify-center rounded-full border border-border transition-colors",
-              voiceEnabled ? "bg-accent/15 text-accent" : "text-muted-foreground"
+          <span className="relative flex size-[7px]">
+            {!paused && (
+              <span className="animate-pulse-soft absolute inset-0 rounded-full bg-accent" />
             )}
-          >
-            {voiceEnabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
-          </button>
-          <span className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-            <span
-              className={`size-1.5 rounded-full ${paused ? "bg-muted-foreground" : "animate-pulse bg-primary"}`}
-            />
-            {paused ? "Paused" : "Live"}
+            <span className="relative size-[7px] rounded-full bg-accent" />
+          </span>
+          <span className="t-label text-foreground/50">
+            {workout.name} · KM {km}
           </span>
         </div>
-      </header>
-
-      {/* Hero: distance ring + elapsed time */}
-      <div className="flex flex-col items-center pt-2">
-        <ProgressRing value={completion} size={216} stroke={12}>
-          <span className="text-[0.65rem] uppercase tracking-widest text-muted-foreground">
-            Distance
-          </span>
-          <span className="tabular-nums text-6xl font-semibold leading-none tracking-tight">
-            {formatDistance(metrics.distance)}
-          </span>
-          <span className="mt-1 text-sm text-muted-foreground">
-            of {(workout.distance / 1000).toFixed(0)} km
-          </span>
-        </ProgressRing>
-        <p className="mt-4 tabular-nums text-xl font-medium text-muted-foreground">
-          {formatDuration(metrics.elapsed)}
-        </p>
-      </div>
-
-      {/* Coaching feed */}
-      <CoachFeed cues={cues} speaking={speaking} />
-
-      {/* Secondary metrics */}
-      <div className="grid grid-cols-4 gap-2.5">
-        <MetricTile
-          label="Pace"
-          value={formatPace(metrics.currentPace)}
-          unit="/km"
-          accent={paceAccent}
-        />
-        <MetricTile
-          label="Heart"
-          value={`${metrics.heartRate}`}
-          unit="bpm"
-          accent="destructive"
-          icon={<Heart className="size-3" />}
-        />
-        <MetricTile
-          label="Cadence"
-          value={`${metrics.cadence}`}
-          unit="spm"
-          icon={<Activity className="size-3" />}
-        />
-        <MetricTile
-          label="Elev"
-          value={`${Math.round(metrics.elevation)}`}
-          unit="m"
-          icon={<Mountain className="size-3" />}
-        />
-      </div>
-
-      {/* Controls: Pause · Talk · Finish */}
-      <div className="flex items-center justify-between gap-3 pt-1">
-        {paused ? (
-          <Button size="icon" variant="secondary" onClick={onResume} aria-label="Resume">
-            <Play className="fill-current" />
-          </Button>
-        ) : (
-          <Button size="icon" variant="secondary" onClick={onPause} aria-label="Pause">
-            <Pause className="fill-current" />
-          </Button>
-        )}
-
-        {/* Free tier: talking to the coach is Premium — show an upgrade path
-            instead of the hands-free control. */}
-        {!premium ? (
-          <Link
-            href="/pricing"
-            className="relative flex h-14 flex-1 items-center justify-center gap-2 rounded-full border border-accent/40 bg-accent/10 font-semibold text-accent transition-all active:scale-[0.98]"
-          >
-            <Lock className="size-4" />
-            Unlock voice coaching
-            <Sparkles className="size-4" />
-          </Link>
-        ) : (
-        /* Hands-free talk — the conversational centrepiece. Speak through your
-           AirPods; no need to touch the phone. */
         <button
           type="button"
-          onClick={onToggleHandsFree}
-          disabled={!micSupported}
-          aria-pressed={handsFree}
-          className={cn(
-            "relative flex h-14 flex-1 items-center justify-center gap-2 rounded-full font-semibold transition-all active:scale-[0.98] disabled:opacity-60",
-            handsFree
-              ? "bg-accent text-accent-foreground"
-              : "bg-secondary text-foreground"
-          )}
+          onClick={onToggleVoice}
+          aria-pressed={voiceEnabled}
+          className="t-label text-tint-strong"
         >
-          {handsFree && listening && !speaking && (
-            <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-accent/40" />
-          )}
-          {!micSupported ? (
-            <>
-              <MicOff className="size-5" />
-              Voice unavailable
-            </>
-          ) : thinking ? (
-            <>
-              <Loader2 className="size-5 animate-spin" />
-              Thinking…
-            </>
-          ) : !handsFree ? (
-            <>
-              <Mic className="size-5" />
-              Talk hands-free
-            </>
-          ) : speaking ? (
-            <>
-              <Volume2 className="size-5" />
-              Avenir speaking…
-            </>
-          ) : (
-            <>
-              <Mic className="size-5" />
-              Listening — tap to stop
-            </>
-          )}
+          {voiceEnabled ? `${metrics.heartRate} BPM` : "MUTED"}
         </button>
-        )}
+      </header>
 
-        <Button
-          size="icon"
-          variant={paused ? "destructive" : "outline"}
+      {/* The metric. Nothing on this screen is louder. */}
+      <div className="flex flex-col gap-0.5">
+        <div className="t-metric">{formatPace(metrics.currentPace)}</div>
+        <div className="t-label text-tint-strong">
+          Pace /km · {paused ? "PAUSED" : verdict}
+        </div>
+        <div className="t-label mt-2 tracking-[0.1em] text-tint-strong">
+          {formatDuration(metrics.elapsed)} · {formatDistance(metrics.distance)} KM
+        </div>
+      </div>
+
+      {/* The coach. Voice out, and — for the full plan — voice in. */}
+      <CoachFeed cues={cues} speaking={speaking} listening={handsFree && listening} />
+
+      {premium && (
+        <div className="flex flex-col gap-[9px]">
+          <div className="t-label tracking-[0.12em] text-tint-strong">
+            Or say nothing — tap instead
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {SILENT_CHIPS.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-[22px] bg-secondary px-4 py-[13px] text-[12.5px] font-medium text-foreground/70"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Controls. 60px mid-run — sweaty thumbs, cold fingers, gloves. */}
+      <div className="mt-auto flex flex-col gap-3 pb-6">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={paused ? onResume : onPause}
+            className="flex size-15 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold text-foreground/60"
+          >
+            {paused ? "Resume" : "Pause"}
+          </button>
+
+          {!premium ? (
+            <Link
+              href="/pricing"
+              className="flex h-15 flex-1 items-center justify-center gap-2 rounded-full border border-accent/40 bg-accent-wash text-[15px] font-bold text-accent"
+            >
+              <Lock className="size-4" />
+              Unlock voice coaching
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={onToggleHandsFree}
+              disabled={!micSupported}
+              aria-pressed={handsFree}
+              className={cn(
+                "flex h-15 flex-1 items-center justify-center gap-2 rounded-full text-[15px] font-bold transition-[filter] duration-[90ms] active:brightness-110 disabled:opacity-60",
+                handsFree
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-secondary text-foreground"
+              )}
+            >
+              {!micSupported ? (
+                "Voice unavailable"
+              ) : thinking ? (
+                <>
+                  <Loader2 className="size-5 animate-spin" />
+                  Thinking
+                </>
+              ) : !handsFree ? (
+                "Tap to talk"
+              ) : speaking ? (
+                "Avenir speaking"
+              ) : (
+                "Tap to stop listening"
+              )}
+            </button>
+          )}
+        </div>
+
+        {/*
+          R6 · A run can always be shortened with the coach. The word
+          "incomplete" is banned — this ends the run and the summary states
+          what the short run achieved.
+        */}
+        <button
+          type="button"
           onClick={onFinish}
-          aria-label="Finish run"
+          className="h-11 text-[12.5px] font-semibold text-muted-foreground"
         >
-          <Square className="fill-current" />
-        </Button>
+          Wrap it up
+        </button>
       </div>
     </div>
   );

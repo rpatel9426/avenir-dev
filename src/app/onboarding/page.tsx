@@ -249,7 +249,7 @@ function Step({
 }) {
   return (
     <div>
-      <p className="text-sm font-medium text-primary">{eyebrow}</p>
+      <p className="text-sm font-medium text-accent">{eyebrow}</p>
       <h1 className="mt-2 mb-6 text-2xl font-semibold leading-tight tracking-tight">
         {title}
       </h1>
@@ -276,7 +276,7 @@ function SelectCard({
       whileTap={{ scale: 0.98 }}
       className={cn(
         "flex w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left transition-colors",
-        selected ? "border-primary/60 bg-primary/[0.07]" : "border-border bg-card/60"
+        selected ? "border-accent/40 bg-accent-wash" : "border-border bg-card/60"
       )}
     >
       <div>
@@ -314,11 +314,11 @@ function IconCard({
       className={cn(
         "flex flex-col items-center justify-center gap-2 rounded-2xl border p-5 transition-colors",
         selected
-          ? "border-primary/60 bg-primary/[0.07] text-foreground"
+          ? "border-accent/40 bg-accent-wash text-foreground"
           : "border-border bg-card/60 text-muted-foreground"
       )}
     >
-      <span className={cn(selected ? "text-primary" : "text-muted-foreground")}>
+      <span className={cn(selected ? "text-accent" : "text-muted-foreground")}>
         {icon}
       </span>
       <span className="text-sm font-medium text-foreground">{label}</span>

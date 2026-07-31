@@ -101,7 +101,7 @@ export function AppShowcase() {
                   ["Easy Run", "5.0 km", "30:06"],
                 ].map(([n, d, t]) => (
                   <div key={n} className="flex items-center gap-2 rounded-xl border border-border bg-card/60 p-2.5">
-                    <span className="flex size-7 items-center justify-center rounded-lg bg-primary/12 text-primary">
+                    <span className="flex size-7 items-center justify-center rounded-lg bg-accent-wash text-accent">
                       <Activity className="size-3.5" />
                     </span>
                     <p className="flex-1 text-xs font-medium">{n}</p>
@@ -119,7 +119,7 @@ export function AppShowcase() {
 
 function TrendUp() {
   return (
-    <span className="flex items-center gap-1 text-[0.6rem] font-medium text-primary">
+    <span className="flex items-center gap-1 text-[0.6rem] font-medium text-accent">
       <Heart className="size-3 fill-current" /> +8%
     </span>
   );

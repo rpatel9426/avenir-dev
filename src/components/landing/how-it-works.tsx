@@ -32,7 +32,7 @@ export function HowItWorks() {
         <div className="mt-14 grid gap-8 sm:grid-cols-3">
           {STEPS.map((s, i) => (
             <Reveal key={s.n} delay={i} className="relative">
-              <div className="text-4xl font-semibold tracking-tight text-primary/30">
+              <div className="text-4xl font-semibold tracking-tight text-accent/30">
                 {s.n}
               </div>
               <h3 className="mt-3 text-lg font-semibold tracking-tight">

@@ -26,7 +26,7 @@ export default function SignupPage() {
   if (state.checkEmail) {
     return (
       <div className="text-center">
-        <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl bg-accent-wash text-accent">
           <MailCheck className="size-6" />
         </div>
         <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
@@ -36,7 +36,7 @@ export default function SignupPage() {
         </p>
         <p className="mt-6 text-sm text-muted-foreground">
           Already confirmed?{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link href="/login" className="font-medium text-accent hover:underline">
             Log in
           </Link>
         </p>
@@ -98,7 +98,7 @@ export default function SignupPage() {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Already running with us?{" "}
-        <Link href="/login" className="font-medium text-primary hover:underline">
+        <Link href="/login" className="font-medium text-accent hover:underline">
           Log in
         </Link>
       </p>

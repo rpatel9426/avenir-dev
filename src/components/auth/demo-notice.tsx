@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 export function DemoNotice() {
   if (isSupabaseConfigured()) return null;
   return (
-    <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-primary/20 bg-primary/10 p-3 text-xs text-primary">
+    <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-accent/40 bg-accent-wash p-3 text-xs text-accent">
       <Sparkles className="mt-0.5 size-3.5 shrink-0" />
       <p>
         Demo mode — Supabase isn&apos;t connected yet, so any details here take

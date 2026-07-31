@@ -1,84 +1,79 @@
-import Link from "next/link";
-import { Flame } from "lucide-react";
 import { getProfile, getRecentRuns } from "@/lib/session";
 import { getWorkout } from "@/lib/workouts";
-import {
-  currentStreak,
-  greeting,
-  recommendedWorkoutId,
-  weeklyDistanceKm,
-} from "@/lib/stats";
-import { TodaySession } from "@/components/app/today-session";
-import { ProgressRing } from "@/components/app/progress-ring";
-import { RunListItem } from "@/components/app/run-list-item";
+import { greeting, recommendedWorkoutId, weeklyDistanceKm } from "@/lib/stats";
+import { StartRunAction, TodaySession } from "@/components/app/today-session";
+import { OpenRow } from "@/components/ds/atoms";
 
 export default function DashboardPage() {
-  return <DashboardContent />;
+  return <TodayContent />;
 }
 
-async function DashboardContent() {
+/**
+ * Today. The screen answers one question — what do I do today? — and the
+ * answer is a sentence before it is a number. No streak to break, no badge,
+ * no red: motivation by competence, not loss aversion.
+ */
+async function TodayContent() {
   const [profile, runs] = await Promise.all([getProfile(), getRecentRuns()]);
 
   const workout = getWorkout(recommendedWorkoutId());
   const weekKm = weeklyDistanceKm(runs);
   const goalKm = profile.weekly_goal_km;
-  const streak = currentStreak(runs);
-  const recent = runs.slice(0, 3);
+  const name = profile.display_name ?? "Runner";
+
+  const today = new Date();
+  const dateLabel = today
+    .toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    })
+    .replace(",", "");
 
   return (
-    <div className="space-y-7">
-      {/* Header */}
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground">{greeting()},</p>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {profile.display_name ?? "Runner"}
-          </h1>
-        </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1.5">
-          <Flame className="size-4 text-primary" />
-          <span className="text-sm font-semibold tabular-nums">{streak}</span>
-          <span className="text-xs text-muted-foreground">day streak</span>
+    <div className="flex min-h-[calc(100dvh-8rem)] flex-col gap-6">
+      <header className="flex items-baseline justify-between">
+        <div className="t-label">{dateLabel}</div>
+        <div className="font-mono text-[10px] font-medium text-tint-strong">
+          {weekKm.toFixed(0)} / {goalKm} km this week
         </div>
       </header>
 
-      {/* Today's session */}
+      <h1 className="t-voice">
+        {greeting()}, {name}.
+      </h1>
+
+      <p className="t-lead text-foreground/80">{homeLine(workout.name, weekKm, goalKm)}</p>
+
       <TodaySession workout={workout} />
 
-      {/* Weekly goal */}
-      <section>
-        <div className="flex items-center gap-5 rounded-3xl border border-border bg-card/60 p-5">
-          <ProgressRing value={goalKm ? weekKm / goalKm : 0} size={116} stroke={9}>
-            <span className="tabular-nums text-2xl font-semibold tracking-tight">
-              {weekKm.toFixed(0)}
-            </span>
-            <span className="text-[0.65rem] text-muted-foreground">of {goalKm} km</span>
-          </ProgressRing>
-          <div className="flex-1">
-            <h3 className="font-semibold">Weekly goal</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {weekKm >= goalKm
-                ? "Goal smashed. Outstanding week of running."
-                : `${(goalKm - weekKm).toFixed(1)} km to go. You're on track — keep stacking runs.`}
-            </p>
-          </div>
-        </div>
-      </section>
+      {runs.length > 0 && (
+        <OpenRow label={`${runs.length} runs banked`} href="/profile" />
+      )}
 
-      {/* Recent runs */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold">Recent runs</h3>
-          <Link href="/history" className="text-sm text-primary hover:underline">
-            See all
-          </Link>
-        </div>
-        <div className="space-y-3">
-          {recent.map((run) => (
-            <RunListItem key={run.id} run={run} />
-          ))}
-        </div>
-      </section>
+      <div className="mt-auto pt-4">
+        <StartRunAction workout={workout} />
+      </div>
     </div>
   );
+}
+
+/**
+ * The coach's one sentence. One clause of reasoning, then the instruction —
+ * second person, present tense, no exclamation marks and no praise of feeling.
+ */
+function homeLine(workoutName: string, weekKm: number, goalKm: number): string {
+  const remaining = goalKm - weekKm;
+  const session = workoutName.toLowerCase();
+
+  if (weekKm === 0) {
+    return `Nothing banked this week yet, so we start gently — ${session} today, and I'll read what it tells me.`;
+  }
+  if (remaining <= 0) {
+    return `You're past the week's distance already, which means today is about quality, not more — keep the ${session} honest.`;
+  }
+  if (remaining <= 5) {
+    return `You're ${remaining.toFixed(1)} km from the week's mark and moving well, so hold the ${session} conversational.`;
+  }
+  return `You've been consistent this week — keep today's ${session} conversational and leave something in the tank.`;
 }

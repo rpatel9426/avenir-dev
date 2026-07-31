@@ -11,22 +11,25 @@ import { ProgressRing } from "@/components/app/progress-ring";
 import { MetricTile } from "@/components/run/metric-tile";
 import { Reveal } from "@/components/motion/reveal";
 
+/* Eight tokens, no more. */
 const COLORS = [
-  { name: "Background", var: "--background", note: "The canvas. Deep, calm, near-black." },
-  { name: "Card", var: "--card", note: "Lifted surface for content." },
-  { name: "Primary", var: "--primary", note: "Electric lime. Energy + primary action." },
-  { name: "Accent", var: "--accent", note: "Cool violet. AI + coaching moments." },
-  { name: "Muted foreground", var: "--muted-foreground", note: "Secondary text." },
-  { name: "Destructive", var: "--destructive", note: "Effort, heart rate, stop." },
+  { name: "Surface", var: "--background", note: "Warm paper. The app at rest." },
+  { name: "Raised", var: "--card", note: "Cards — only when grouping is real." },
+  { name: "Ink", var: "--primary", note: "Text and primary action, light mode." },
+  { name: "Accent", var: "--accent", note: "5.9:1 on paper. Actions and selection only — never a value, a chart or a signifier." },
+  { name: "Attention", var: "--attention", note: "Fatigue, weather, offline. Blue-grey, not amber: it survives red-green deficiency." },
+  { name: "Tint", var: "--muted-foreground", note: "Secondary text. A solid tint, never an opacity." },
 ];
 
+/* Seven steps. Nothing below 11.5px, no metric below 24px. */
 const TYPE = [
-  { label: "Display", cls: "text-5xl font-semibold tracking-tight", sample: "Run further" },
-  { label: "H1", cls: "text-3xl font-semibold tracking-tight", sample: "Every run, coached" },
-  { label: "H2", cls: "text-xl font-semibold tracking-tight", sample: "Today's session" },
-  { label: "Body", cls: "text-base text-muted-foreground", sample: "Avenir reads your effort in real time." },
-  { label: "Numeric", cls: "text-4xl font-semibold tabular-nums tracking-tight", sample: "5:12" },
-  { label: "Label", cls: "text-xs uppercase tracking-widest text-muted-foreground", sample: "Pace / km" },
+  { label: "metric/82", cls: "t-metric", sample: "5:48" },
+  { label: "voice/34", cls: "t-voice", sample: "Morning, Rishi." },
+  { label: "lead/19", cls: "t-lead", sample: "Keep today conversational." },
+  { label: "title/17", cls: "t-title", sample: "Easy run" },
+  { label: "body/14.5", cls: "t-body", sample: "Forty minutes, nothing more." },
+  { label: "meta/11.5", cls: "t-meta", sample: "Updated after every long run" },
+  { label: "label/10", cls: "t-label", sample: "Week 7 of 18" },
 ];
 
 export default function DesignSystemPage() {
@@ -53,9 +56,16 @@ export default function DesignSystemPage() {
             The Avenir system
           </h1>
           <p className="mt-3 max-w-xl text-muted-foreground">
-            Futuristic, intelligent, calm, motivating, premium. A dark-first
-            visual language built for focus in motion — the restraint of Whoop,
-            the elegance of Apple Fitness, the energy of the run itself.
+            Eight colours, seven type steps, two atoms — a system a two-person
+            team can hold in their head. Light paper for the app at rest, night
+            for the live run. Serif is the coach&apos;s voice, mono is machine
+            fact, sans is everything the runner does.
+          </p>
+          <p className="mt-3 max-w-xl text-sm text-muted-foreground">
+            Three rules the system defends: every screen answers one question,
+            and the answer is a sentence before it is a number; no streaks, no
+            badges, no red; if the coach can say it, we don&apos;t build a
+            screen for it.
           </p>
         </section>
 
@@ -128,7 +138,7 @@ export default function DesignSystemPage() {
           <div className="glass flex items-center justify-around rounded-full border border-border p-1.5">
             <NavDemo label="Home" active />
             <NavDemo label="Runs" />
-            <span className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_8px_24px_-6px] shadow-primary/60">
+            <span className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_8px_24px_-6px] shadow-accent/30">
               ▶
             </span>
             <NavDemo label="Profile" />
@@ -189,7 +199,7 @@ function Section({
 }) {
   return (
     <section>
-      <h2 className="text-sm font-semibold uppercase tracking-widest text-primary">
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-accent">
         {title}
       </h2>
       <p className="mt-1 mb-5 text-sm text-muted-foreground">{caption}</p>

@@ -1,115 +1,93 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Volume2 } from "lucide-react";
 import type { CoachLine } from "@/hooks/use-run-session";
 import { cn } from "@/lib/utils";
 
-const TONE_STYLES: Record<string, string> = {
-  push: "text-primary",
-  finish: "text-primary",
-  milestone: "text-primary",
-  ease: "text-accent",
-  encourage: "text-accent",
-  steady: "text-foreground",
-  start: "text-foreground",
-};
-
 /**
- * The coaching feed. The newest coach line is spotlighted at the top; earlier
- * lines — including anything the runner said aloud — scroll gently beneath it,
- * forming a transcript of the run's conversation.
+ * The coach's card. One thing moves at a time: the voice arrives by opacity
+ * plus a 4px rise, and nothing else on the live screen animates while it does.
+ * When the runner is being listened to, the same card turns accent and shows
+ * what was heard — so the state is never in doubt at arm's length.
  */
 export function CoachFeed({
   cues,
   speaking,
+  listening = false,
 }: {
   cues: CoachLine[];
   speaking?: boolean;
+  listening?: boolean;
 }) {
   const latest = cues.find((c) => c.role === "coach") ?? null;
-  const history = cues.filter((c) => c.id !== latest?.id);
+  const lastHeard = cues.find((c) => c.role === "runner") ?? null;
+  const history = cues.filter((c) => c.id !== latest?.id).slice(0, 3);
 
   return (
-    <div className="space-y-3">
-      {/* Spotlight — the coach's current line. */}
-      <div className="glass min-h-[7rem] rounded-3xl border border-border p-5">
-        <div className="flex items-center gap-2 text-xs font-medium text-accent">
-          <span className="flex size-6 items-center justify-center rounded-full bg-accent/15">
-            <Volume2 className="size-3.5" />
-          </span>
-          Avenir
-          <span className="ml-auto flex items-center gap-1 text-muted-foreground">
-            <span
-              className={cn(
-                "size-1.5 rounded-full bg-primary",
-                speaking ? "animate-ping" : "animate-pulse"
-              )}
-            />
-            {speaking ? "speaking" : "coaching"}
-          </span>
+    <div className="flex flex-col gap-3">
+      <div
+        className={cn(
+          "flex min-h-[7rem] flex-col gap-[13px] rounded-[22px] p-5 transition-colors",
+          listening
+            ? "border border-accent/40 bg-accent-wash"
+            : "border border-border bg-secondary"
+        )}
+      >
+        <div className="flex items-center gap-[9px]">
+          {listening ? (
+            <>
+              <span aria-hidden className="flex h-4 items-end gap-[2.5px]">
+                {[0, 0.1, 0.2, 0.3].map((delay) => (
+                  <span
+                    key={delay}
+                    className="animate-wave w-[2.5px] rounded-sm bg-accent"
+                    style={{ height: "16px", animationDelay: `${delay}s` }}
+                  />
+                ))}
+              </span>
+              <span className="t-label text-accent">Listening · tap to stop</span>
+            </>
+          ) : (
+            <span className="t-label text-tint-strong">
+              {speaking ? "Avenir speaking" : "Avenir"}
+            </span>
+          )}
         </div>
-        <div className="mt-3 min-h-[3rem]">
-          <AnimatePresence mode="wait">
-            {latest ? (
-              <motion.p
-                key={latest.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.4 }}
-                className={cn(
-                  "text-lg font-medium leading-snug",
-                  TONE_STYLES[latest.tone] ?? "text-foreground"
-                )}
-              >
-                {latest.message}
-              </motion.p>
-            ) : (
-              <motion.p
-                key="waiting"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-lg font-medium leading-snug text-muted-foreground"
-              >
-                Listening to your first strides…
-              </motion.p>
+
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={listening ? lastHeard?.id ?? "listening" : latest?.id ?? "waiting"}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            className={cn(
+              "text-[16.5px] leading-[1.45] text-pretty",
+              listening ? "text-accent" : "text-foreground"
             )}
-          </AnimatePresence>
-        </div>
+          >
+            {listening
+              ? lastHeard
+                ? `“${lastHeard.message}”`
+                : "Go ahead — I'm listening."
+              : (latest?.message ?? "Listening to your first strides.")}
+          </motion.p>
+        </AnimatePresence>
       </div>
 
-      {/* Transcript */}
       {history.length > 0 && (
-        <div className="space-y-2">
-          <AnimatePresence initial={false}>
-            {history.slice(0, 5).map((cue) =>
-              cue.role === "runner" ? (
-                <motion.div
-                  key={cue.id}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0 }}
-                  className="flex justify-end"
-                >
-                  <span className="rounded-2xl rounded-br-sm bg-primary/15 px-3 py-1.5 text-sm text-foreground">
-                    {cue.message}
-                  </span>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={cue.id}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-start gap-2 px-1 text-sm text-muted-foreground"
-                >
-                  <span className="mt-1 size-1.5 shrink-0 rounded-full bg-border" />
-                  <span className="leading-snug">{cue.message}</span>
-                </motion.div>
-              )
-            )}
-          </AnimatePresence>
+        <div className="flex flex-col gap-1.5">
+          {history.map((cue) => (
+            <p
+              key={cue.id}
+              className={cn(
+                "t-meta truncate",
+                cue.role === "runner" && "text-right text-tint-strong"
+              )}
+            >
+              {cue.message}
+            </p>
+          ))}
         </div>
       )}
     </div>

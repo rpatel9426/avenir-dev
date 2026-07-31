@@ -25,10 +25,10 @@ export default async function PricingPage() {
       <SiteHeader />
       <main className="flex-1 px-5 pt-28 pb-16">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="label-mono text-primary">Pricing</p>
+          <p className="label-mono text-accent">Pricing</p>
           <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
             Run coached for{" "}
-            <span className="font-editorial italic text-primary">free</span>
+            <span className="font-editorial italic text-accent">free</span>
           </h1>
           <p className="mx-auto mt-4 max-w-md text-muted-foreground">
             The full run and live coaching cost nothing. Talking to your coach,
@@ -48,7 +48,7 @@ export default async function PricingPage() {
                 className={cn(
                   "flex flex-col rounded-3xl border p-7",
                   featured
-                    ? "border-primary/50 bg-primary/[0.05]"
+                    ? "border-accent/40 bg-accent-wash"
                     : "border-border bg-card/60"
                 )}
               >
@@ -70,7 +70,7 @@ export default async function PricingPage() {
                       <Check
                         className={cn(
                           "mt-0.5 size-4 shrink-0",
-                          featured ? "text-primary" : "text-muted-foreground"
+                          featured ? "text-accent" : "text-muted-foreground"
                         )}
                       />
                       {f}
@@ -81,7 +81,7 @@ export default async function PricingPage() {
                 <div className="mt-7">
                   {featured ? (
                     premium ? (
-                      <p className="text-center text-sm font-medium text-primary">
+                      <p className="text-center text-sm font-medium text-accent">
                         You&apos;re on Premium ✓
                       </p>
                     ) : (

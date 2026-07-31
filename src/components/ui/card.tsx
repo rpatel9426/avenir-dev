@@ -7,7 +7,8 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "rounded-2xl border border-border bg-card text-card-foreground shadow-sm",
+        /* Raised — used only when grouping is real. Radius 22, one soft shadow. */
+        "rounded-[22px] bg-card text-card-foreground shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border dark:border-border dark:shadow-none",
         className
       )}
       {...props}

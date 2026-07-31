@@ -51,10 +51,10 @@ export default async function ProfilePage() {
         <h2 className="text-sm font-medium text-muted-foreground">Plan</h2>
         <Link
           href="/pricing"
-          className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-4 transition-colors hover:border-primary/40"
+          className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-4 transition-colors hover:border-accent/40"
         >
           <span
-            className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${premium ? "bg-primary/12 text-primary" : "bg-secondary text-muted-foreground"}`}
+            className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${premium ? "bg-accent-wash text-accent" : "bg-secondary text-muted-foreground"}`}
           >
             <Sparkles className="size-5" />
           </span>
@@ -112,7 +112,8 @@ function StatCard({
 }) {
   return (
     <div className="rounded-2xl border border-border bg-card/60 p-4 text-center">
-      <Icon className="mx-auto mb-2 size-4 text-primary" />
+      {/* Neutral: a stat is a value, and green means action. */}
+      <Icon className="mx-auto mb-2 size-4 text-muted-foreground" />
       <p className="tabular-nums text-lg font-semibold tracking-tight">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>

@@ -8,7 +8,7 @@ export function CTA() {
     <section className="px-5 py-20">
       <Reveal className="mx-auto max-w-4xl">
         <div className="aurora relative overflow-hidden rounded-[2rem] border border-border px-6 py-16 text-center sm:px-12">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
           <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Your next run is waiting.
           </h2>

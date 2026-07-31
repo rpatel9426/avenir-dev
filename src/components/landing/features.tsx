@@ -8,10 +8,10 @@ export function Features() {
     <section className="px-5 py-20">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-xl text-center">
-          <p className="label-mono text-primary">Why Avenir</p>
+          <p className="label-mono text-accent">Why Avenir</p>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Everything you need to{" "}
-            <span className="font-editorial italic text-primary">become a better runner</span>
+            <span className="font-editorial italic text-accent">become a better runner</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Live coaching, tracking, and recovery insight — in one calm, focused place.
@@ -24,7 +24,7 @@ export function Features() {
             <Card className="flex h-full flex-col justify-between overflow-hidden bg-card/60 p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="mb-3 inline-flex size-10 items-center justify-center rounded-xl bg-primary/12 text-primary">
+                  <span className="mb-3 inline-flex size-10 items-center justify-center rounded-xl bg-accent-wash text-accent">
                     <Route className="size-5" />
                   </span>
                   <h3 className="text-lg font-semibold tracking-tight">Live tracking</h3>
@@ -58,7 +58,7 @@ export function Features() {
           <Reveal delay={2}>
             <Card className="flex h-full flex-col justify-between bg-card/60 p-6">
               <div>
-                <span className="mb-3 inline-flex size-10 items-center justify-center rounded-xl bg-primary/12 text-primary">
+                <span className="mb-3 inline-flex size-10 items-center justify-center rounded-xl bg-accent-wash text-accent">
                   <TrendingUp className="size-5" />
                 </span>
                 <h3 className="text-lg font-semibold tracking-tight">Performance analytics</h3>
@@ -101,7 +101,7 @@ export function Features() {
 
           <Reveal delay={5}>
             <Card className="flex h-full flex-col bg-card/60 p-6">
-              <span className="mb-3 inline-flex size-10 items-center justify-center rounded-xl bg-primary/12 text-primary">
+              <span className="mb-3 inline-flex size-10 items-center justify-center rounded-xl bg-accent-wash text-accent">
                 <Target className="size-5" />
               </span>
               <h3 className="text-lg font-semibold tracking-tight">Goals that stick</h3>

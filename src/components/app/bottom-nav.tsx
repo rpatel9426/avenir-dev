@@ -2,62 +2,44 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
-import { History, Home, Play, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/*
+ * Four tabs is the most a 6am brain navigates without reading — and they are
+ * words, not icons: four labels are faster to read than four glyphs you have
+ * to learn, and they scale with the system font size.
+ */
 const ITEMS = [
-  { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/history", label: "Runs", icon: History },
-  { href: "/run", label: "Run", icon: Play, primary: true },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/dashboard", label: "Today" },
+  { href: "/plan", label: "Plan" },
+  { href: "/coach", label: "Coach" },
+  { href: "/profile", label: "You" },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
 
-  // The Run screen is immersive — hide the dock so nothing overlaps the live
-  // controls and there's no way to wander off mid-run by accident.
+  // The live run is immersive — nothing overlaps the controls, and there's no
+  // way to wander off mid-run by accident.
   if (pathname.startsWith("/run")) return null;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
-      <div className="glass mx-auto flex max-w-md items-center justify-around rounded-full border border-border p-1.5 shadow-lg shadow-black/30">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background">
+      <div className="mx-auto flex max-w-md justify-between px-[34px] pb-[max(1.625rem,env(safe-area-inset-bottom))] pt-[14px]">
         {ITEMS.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
-
-          if (item.primary) {
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-label={item.label}
-                className="relative -my-3 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_8px_24px_-6px] shadow-primary/60 transition-transform active:scale-95"
-              >
-                <item.icon className="size-6 fill-current" />
-              </Link>
-            );
-          }
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              aria-label={item.label}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex flex-1 flex-col items-center gap-0.5 rounded-full py-2.5 text-[0.65rem] font-medium transition-colors",
+                "flex min-h-[42px] flex-1 items-start justify-center text-[10.5px] font-semibold transition-colors",
                 active ? "text-foreground" : "text-muted-foreground"
               )}
             >
-              {active && (
-                <motion.span
-                  layoutId="nav-pill"
-                  className="absolute inset-0 -z-10 rounded-full bg-secondary/70"
-                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                />
-              )}
-              <item.icon className="size-5" />
               {item.label}
             </Link>
           );

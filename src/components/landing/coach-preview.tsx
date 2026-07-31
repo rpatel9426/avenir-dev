@@ -73,7 +73,7 @@ export function CoachPreview() {
       </div>
 
       <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-        <Activity className="size-3.5 text-primary" />
+        <Activity className="size-3.5 text-accent" />
         Avenir is listening to your run
         <span className="ml-auto flex items-center gap-1">
           <span className="size-1.5 animate-pulse rounded-full bg-primary" />

@@ -40,10 +40,10 @@ export function FAQ() {
     <section className="px-5 py-20">
       <div className="mx-auto max-w-3xl">
         <Reveal className="text-center">
-          <p className="label-mono text-primary">FAQ</p>
+          <p className="label-mono text-accent">FAQ</p>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Everything you need,{" "}
-            <span className="font-editorial italic text-primary">all in one place</span>
+            <span className="font-editorial italic text-accent">all in one place</span>
           </h2>
         </Reveal>
 
@@ -65,7 +65,7 @@ export function FAQ() {
                   <Plus
                     className={cn(
                       "size-5 shrink-0 text-muted-foreground transition-transform duration-300",
-                      isOpen && "rotate-45 text-primary"
+                      isOpen && "rotate-45 text-accent"
                     )}
                   />
                 </button>
