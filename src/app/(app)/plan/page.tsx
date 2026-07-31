@@ -1,109 +1,120 @@
+import Link from "next/link";
 import { getProfile, getRecentRuns } from "@/lib/session";
-import { WORKOUTS, getWorkout } from "@/lib/workouts";
+import { getWorkout } from "@/lib/workouts";
 import { weeklyDistanceKm } from "@/lib/stats";
-import { WorkoutRow, Metric, OpenRow } from "@/components/ds/atoms";
+import { WorkoutRow } from "@/components/ds/atoms";
 import { formatPace } from "@/lib/utils";
+import type { RunGoal } from "@/lib/supabase/types";
 
 export default function PlanPage() {
   return <PlanContent />;
 }
 
-/** Relative effort per session — the load bar is a width, never a number. */
+/** Relative effort. Load is shown as a bar width, not a number. */
 const LOAD: Record<string, number> = {
-  recovery: 0.2,
-  easy: 0.4,
-  long: 0.95,
-  tempo: 0.75,
-  intervals: 0.85,
+  recovery: 0.35,
+  easy: 0.5,
+  long: 1,
+  tempo: 0.8,
+  intervals: 0.9,
   race: 1,
+  strength: 0.4,
+  rest: 0,
 };
 
-/** The week the coach has written, Monday first. */
-const WEEK_SHAPE = [
-  "easy",
-  "intervals",
-  "recovery",
-  "tempo",
-  "easy",
-  "long",
-  "recovery",
-] as const;
+/**
+ * The week the coach has written, Monday first. A rest day is a row like any
+ * other — the plan includes not running, so it can't be read as a gap.
+ */
+const WEEK: { id: RunGoal | "rest" | "strength"; detail?: string; tag?: string }[] = [
+  { id: "rest" },
+  { id: "easy" },
+  { id: "strength", detail: "25 min · calves & hips" },
+  { id: "easy", detail: "30 min · calf permitting", tag: "Moved" },
+  { id: "rest" },
+  { id: "tempo" },
+  { id: "long", detail: "Conversational throughout" },
+];
 
 async function PlanContent() {
   const [profile, runs] = await Promise.all([getProfile(), getRecentRuns()]);
 
   const weekKm = weeklyDistanceKm(runs);
   const goalKm = profile.weekly_goal_km;
-  // Monday of the current week, so the row dates line up with real calendar days.
+
+  // Monday of the current week, so the rows line up with real calendar days.
   const now = new Date();
   const monday = new Date(now);
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
 
-  const days = WEEK_SHAPE.map((id, i) => {
+  const days = WEEK.map((entry, i) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
-    const workout = getWorkout(id);
+
+    const isRun = entry.id !== "rest" && entry.id !== "strength";
+    const workout = isRun ? getWorkout(entry.id) : null;
+
     return {
-      id,
-      workout,
+      ...entry,
       date,
       isToday: date.toDateString() === now.toDateString(),
-      isPast: date < now && date.toDateString() !== now.toDateString(),
+      name: workout
+        ? workout.name
+        : entry.id === "strength"
+          ? "Strength"
+          : "Rest",
+      detail:
+        entry.detail ??
+        (workout
+          ? `${workout.durationLabel.replace("~", "")} · ${formatPace(
+              workout.targetPace
+            )} /km`
+          : undefined),
+      href: workout ? `/run?w=${entry.id}` : undefined,
     };
   });
 
-  const plannedKm = WEEK_SHAPE.reduce(
-    (sum, id) => sum + getWorkout(id).distance / 1000,
-    0
-  );
+  const plannedKm = WEEK.reduce((sum, e) => {
+    if (e.id === "rest" || e.id === "strength") return sum;
+    return sum + getWorkout(e.id).distance / 1000;
+  }, 0);
 
   return (
-    <div className="flex flex-col gap-7">
-      <header className="flex flex-col gap-2">
-        <div className="t-label">This week</div>
-        <h1 className="t-voice">The shape of your week.</h1>
+    <div className="flex min-h-[calc(100dvh-11rem)] flex-col">
+      <header className="flex flex-col gap-1.5">
+        <div className="t-label">
+          This week · {plannedKm.toFixed(0)} km planned
+        </div>
+        <h1 className="t-voice">Build block</h1>
       </header>
 
-      <div className="flex gap-[26px] rounded-[22px] bg-card p-[22px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border dark:border-border dark:shadow-none">
-        <Metric value={weekKm.toFixed(0)} unit={` / ${goalKm} km`} label="Banked" />
-        <Metric value={plannedKm.toFixed(0)} unit=" km" label="Planned" />
-      </div>
-
-      <section className="flex flex-col gap-2">
-        {days.map(({ id, workout, date, isToday, isPast }) => (
+      {/* A list, not a grid — a month grid asks the runner to do the reading. */}
+      <div className="mt-[22px] flex flex-col">
+        {days.map((day) => (
           <WorkoutRow
-            key={date.toISOString()}
-            day={date.toLocaleDateString("en-GB", { weekday: "short" })}
-            date={date.getDate()}
-            name={workout.name}
-            detail={`${workout.durationLabel.replace("~", "")} · ${formatPace(
-              workout.targetPace
-            )} /km`}
-            load={LOAD[id] ?? 0.5}
-            selected={isToday}
-            href={isPast ? undefined : `/run?w=${id}`}
-            className={isPast ? "opacity-55" : undefined}
+            key={day.date.toISOString()}
+            variant="list"
+            day={day.date.toLocaleDateString("en-GB", { weekday: "short" })}
+            date={String(day.date.getDate()).padStart(2, "0")}
+            name={day.name}
+            detail={day.detail}
+            tag={day.tag}
+            load={LOAD[day.id] ?? 0.5}
+            selected={day.isToday}
+            href={day.href}
           />
         ))}
-      </section>
-
-      <div className="flex flex-col gap-4 rounded-[22px] bg-card p-[22px] shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border dark:border-border dark:shadow-none">
-        <div className="t-label">Your goal</div>
-        <p className="t-body">
-          {goalKm} km a week, at{" "}
-          {profile.preferred_pace_sec_per_km
-            ? `${formatPace(profile.preferred_pace_sec_per_km)} /km`
-            : "a pace I'm still learning"}
-          . The plan rebuilds itself around what you actually run — nothing here
-          is a streak you can break.
-        </p>
-        <OpenRow label="Talk to me about the plan" href="/coach" />
       </div>
 
-      <p className="t-meta">
-        {WORKOUTS.length} session types in rotation. Today is marked; past days
-        stay on the record rather than disappearing.
-      </p>
+      <Link
+        href="/coach"
+        className="mb-[18px] mt-auto rounded-[18px] bg-muted px-[18px] py-4 text-[13px] leading-[1.5] text-foreground/65 text-pretty"
+      >
+        {weekKm >= goalKm
+          ? "You're past the week's distance already. Two weeks of building left, then you get an easy one."
+          : `${(goalKm - weekKm).toFixed(0)} km left this week. Two weeks of building, then you get an easy one.`}{" "}
+        <span className="text-accent">Talk to me about the plan →</span>
+      </Link>
     </div>
   );
 }

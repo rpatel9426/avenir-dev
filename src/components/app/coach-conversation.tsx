@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Loader2 } from "lucide-react";
-import { Chip, CoachMessage } from "@/components/ds/atoms";
-import { Input } from "@/components/ui/input";
+import { Loader2, Mic } from "lucide-react";
+import { Chip, CoachMessage, PlanDiff } from "@/components/ds/atoms";
+import { proposeChange, type PlanChange } from "@/lib/plan-change";
 
 interface Turn {
   id: number;
@@ -11,13 +11,15 @@ interface Turn {
   text: string;
 }
 
-/* The silent path: the coach still answers, without anyone having to type. */
-const OPENERS = [
-  "I can't run today",
-  "Something hurts",
-  "How's my week going?",
-  "Make tomorrow easier",
-];
+interface DiffTurn {
+  id: number;
+  afterTurn: number;
+  change: PlanChange;
+  status: "pending" | "accepted" | "declined";
+}
+
+/* Two openers, as drawn — the ones a runner actually reaches for. */
+const CHIPS = ["Move tomorrow", "Am I on track?"];
 
 export function CoachConversation({
   opener,
@@ -32,22 +34,27 @@ export function CoachConversation({
   const [turns, setTurns] = useState<Turn[]>([
     { id: 0, from: "coach", text: opener },
   ]);
+  const [diffs, setDiffs] = useState<DiffTurn[]>([]);
   const [draft, setDraft] = useState("");
   const [thinking, setThinking] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  // A monotonic counter rather than a clock: ids only need to be unique.
+  const nextId = useRef(1);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
-  }, [turns, thinking]);
+  }, [turns, diffs, thinking]);
 
   async function send(message: string) {
     const text = message.trim();
     if (!text || thinking) return;
 
+    const turnId = nextId.current;
+    nextId.current += 3;
     setDraft("");
     setNotice(null);
-    setTurns((t) => [...t, { id: Date.now(), from: "runner", text }]);
+    setTurns((t) => [...t, { id: turnId, from: "runner", text }]);
     setThinking(true);
 
     try {
@@ -70,13 +77,23 @@ export function CoachConversation({
         }),
       });
 
-      const data = (await res.json()) as { reply?: string | null; error?: string };
+      const data = (await res.json()) as { reply?: string | null };
 
       if (data.reply) {
         setTurns((t) => [
           ...t,
-          { id: Date.now() + 1, from: "coach", text: data.reply as string },
+          { id: turnId + 1, from: "coach", text: data.reply as string },
         ]);
+
+        // Chat that *does things*: a consequential reply lands as a change the
+        // runner can accept in one tap, not advice to re-enter somewhere else.
+        const change = proposeChange(text);
+        if (change) {
+          setDiffs((d) => [
+            ...d,
+            { id: turnId + 2, afterTurn: turnId + 1, change, status: "pending" },
+          ]);
+        }
       } else {
         // Problems are said in words and given an action — never a red banner.
         setNotice(
@@ -92,13 +109,34 @@ export function CoachConversation({
     }
   }
 
+  function setDiffStatus(id: number, status: DiffTurn["status"]) {
+    setDiffs((d) => d.map((x) => (x.id === id ? { ...x, status } : x)));
+  }
+
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-3">
+    <div className="flex min-h-[calc(100dvh-13rem)] flex-col">
+      <div className="flex flex-1 flex-col gap-[14px] pb-2">
         {turns.map((turn) => (
-          <CoachMessage key={turn.id} from={turn.from}>
-            {turn.text}
-          </CoachMessage>
+          <div key={turn.id} className="flex flex-col gap-[14px]">
+            <CoachMessage from={turn.from}>{turn.text}</CoachMessage>
+            {diffs
+              .filter((d) => d.afterTurn === turn.id)
+              .map((d) => (
+                <PlanDiff
+                  key={d.id}
+                  before={d.change.before}
+                  after={d.change.after}
+                  status={d.status}
+                  onAccept={() => setDiffStatus(d.id, "accepted")}
+                  onDecline={() =>
+                    setDiffStatus(
+                      d.id,
+                      d.status === "accepted" ? "pending" : "declined"
+                    )
+                  }
+                />
+              ))}
+          </div>
         ))}
         {thinking && (
           <div className="t-label flex items-center gap-2 self-start">
@@ -106,41 +144,43 @@ export function CoachConversation({
             Thinking
           </div>
         )}
+        {notice && <p className="t-body self-start text-attention-ink">{notice}</p>}
         <div ref={endRef} />
       </div>
 
-      {notice && <p className="t-body text-attention-ink">{notice}</p>}
+      <div className="sticky bottom-[4.5rem] flex flex-col gap-2.5 bg-background pt-2">
+        <div className="flex flex-wrap gap-2">
+          {CHIPS.map((chip) => (
+            <Chip key={chip} onClick={() => send(chip)}>
+              {chip}
+            </Chip>
+          ))}
+        </div>
 
-      <div className="flex flex-wrap gap-2">
-        {OPENERS.map((o) => (
-          <Chip key={o} onClick={() => send(o)}>
-            {o}
-          </Chip>
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(draft);
-        }}
-        className="flex items-center gap-2"
-      >
-        <Input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Tell me anything…"
-          aria-label="Message your coach"
-        />
-        <button
-          type="submit"
-          disabled={!draft.trim() || thinking}
-          aria-label="Send"
-          className="flex size-[50px] shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-[filter] duration-[90ms] active:brightness-110 disabled:bg-secondary disabled:text-foreground/30"
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(draft);
+          }}
+          className="flex items-center gap-2.5"
         >
-          <ArrowUp className="size-5" />
-        </button>
-      </form>
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Tell me anything…"
+            aria-label="Message your coach"
+            className="h-[50px] flex-1 rounded-full border border-transparent bg-muted px-5 text-sm text-foreground placeholder:text-tint-strong focus-visible:border-[1.5px] focus-visible:border-accent focus-visible:bg-card focus-visible:outline-none"
+          />
+          <button
+            type="submit"
+            disabled={thinking}
+            aria-label={draft.trim() ? "Send" : "Talk to your coach"}
+            className="flex size-[50px] shrink-0 items-center justify-center rounded-full bg-accent-wash text-accent disabled:opacity-50"
+          >
+            <Mic className="size-5" />
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

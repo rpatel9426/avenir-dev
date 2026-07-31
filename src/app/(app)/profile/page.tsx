@@ -1,130 +1,126 @@
 import Link from "next/link";
-import { ArrowUpRight, Gauge, Sparkles, Target, TrendingUp } from "lucide-react";
 import { getProfile, getRecentRuns } from "@/lib/session";
-import { totals } from "@/lib/stats";
+import { totals, weeklyDistanceKm } from "@/lib/stats";
 import { formatPace } from "@/lib/utils";
 import { isPremium } from "@/lib/entitlements";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { SignOutButton } from "@/components/app/sign-out-button";
+import { WeeklyVolume } from "@/components/app/weekly-volume";
 
-const LEVEL_LABEL: Record<string, string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-};
-
+/**
+ * You. Opens with a sentence, not a chart — one chart maximum, and the only
+ * highlighted bar is this week. Predicted finish is the number the runner
+ * actually cares about, so it sits at the bottom as a reward for scrolling.
+ */
 export default async function ProfilePage() {
   const [profile, runs] = await Promise.all([getProfile(), getRecentRuns()]);
   const t = totals(runs);
   const premium = isPremium(profile);
-  const initial = (profile.display_name ?? "R").charAt(0).toUpperCase();
+  const weekKm = weeklyDistanceKm(runs);
+
+  const longest = runs.reduce(
+    (max, r) => Math.max(max, r.distance_m ?? 0),
+    0
+  );
+  const easyPace = profile.preferred_pace_sec_per_km;
 
   return (
-    <div className="space-y-7">
-      {/* Identity */}
-      <header className="flex flex-col items-center pt-4 text-center">
-        <div className="flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-3xl font-semibold text-primary-foreground">
-          {initial}
-        </div>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-          {profile.display_name ?? "Runner"}
+    <div className="flex min-h-[calc(100dvh-11rem)] flex-col gap-[26px]">
+      <header className="flex flex-col gap-3">
+        <div className="t-label">Since you started</div>
+        <h1 className="t-voice text-pretty">
+          {t.runs === 0
+            ? "Nothing on the record yet. That changes with one run."
+            : `You've run ${t.runs} ${t.runs === 1 ? "time" : "times"} and banked ${t.distanceKm.toFixed(0)} kilometres. That's the whole story.`}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {LEVEL_LABEL[profile.experience_level]} runner
-        </p>
       </header>
 
-      {/* Lifetime stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard icon={TrendingUp} label="Total km" value={t.distanceKm.toFixed(0)} />
-        <StatCard icon={Gauge} label="Runs" value={`${t.runs}`} />
-        <StatCard
-          icon={Target}
-          label="Goal pace"
-          value={profile.preferred_pace_sec_per_km ? formatPace(profile.preferred_pace_sec_per_km) : "—"}
+      <WeeklyVolume runs={runs} thisWeekKm={weekKm} />
+
+      {/* Rows, not tiles: each is a fact with the number the runner wants. */}
+      <div className="flex flex-col">
+        <StatRow
+          label="Easy pace"
+          note={easyPace ? "The pace I'll hold you to" : "I'm still learning it"}
+          value={easyPace ? formatPace(easyPace) : "—"}
+        />
+        <StatRow
+          label="Longest run"
+          note={longest > 0 ? "On the record" : "Still ahead of you"}
+          value={longest > 0 ? (longest / 1000).toFixed(1) : "—"}
+          unit={longest > 0 ? " km" : undefined}
+        />
+        <StatRow
+          label="Time on your feet"
+          note="Updated after every run"
+          value={`${Math.round(t.durationS / 3600)}`}
+          unit=" h"
+          last
         />
       </div>
 
-      {/* Plan */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Plan</h2>
-        <Link
-          href="/pricing"
-          className="flex items-center gap-4 rounded-2xl border border-border bg-card/60 p-4 transition-colors hover:border-accent/40"
-        >
-          <span
-            className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${premium ? "bg-accent-wash text-accent" : "bg-secondary text-muted-foreground"}`}
-          >
-            <Sparkles className="size-5" />
+      <Link
+        href="/pricing"
+        className="open-mark flex items-center justify-between rounded-[18px] bg-muted px-[18px] py-4"
+      >
+        <span className="flex flex-col gap-0.5">
+          <span className="text-[15px] font-semibold">
+            Avenir {premium ? "Premium" : "Free"}
           </span>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <p className="font-semibold">Avenir {premium ? "Premium" : "Free"}</p>
-              {premium && <Badge>Active</Badge>}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {premium
-                ? "Full voice conversation unlocked."
-                : "Upgrade to talk to your coach hands-free."}
-            </p>
-          </div>
-          <ArrowUpRight className="size-5 text-muted-foreground" />
-        </Link>
-      </section>
+          <span className="t-meta">
+            {premium
+              ? "Full voice conversation unlocked."
+              : "Everything you need to run coached."}
+          </span>
+        </span>
+      </Link>
 
-      {/* Settings */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Preferences</h2>
-
-        <Row label="Weekly goal" value={`${profile.weekly_goal_km} km`} />
-        <Row
-          label="Preferred pace"
-          value={
-            profile.preferred_pace_sec_per_km
-              ? `${formatPace(profile.preferred_pace_sec_per_km)} /km`
-              : "Not set"
-          }
-        />
-
-        <div className="flex items-center justify-between rounded-2xl border border-border bg-card/60 p-4">
-          <div>
-            <p className="font-medium">Appearance</p>
-            <p className="text-sm text-muted-foreground">Dark by default</p>
+      <div className="flex flex-col">
+        <StatRow label="Weekly goal" note="What I plan around" value={`${profile.weekly_goal_km}`} unit=" km" />
+        <div className="flex items-center justify-between border-b border-border py-[17px]">
+          <div className="flex flex-col gap-[3px]">
+            <div className="text-[15px] font-semibold leading-[1.2]">Appearance</div>
+            <div className="t-meta">Light for the app, dark for the run</div>
           </div>
           <ThemeToggle />
         </div>
-      </section>
+      </div>
 
-      <SignOutButton />
+      <div className="mt-auto flex flex-col gap-4 pb-2">
+        <p className="t-meta">Tap any row for the full history.</p>
+        <SignOutButton />
+      </div>
     </div>
   );
 }
 
-function StatCard({
-  icon: Icon,
+function StatRow({
   label,
+  note,
   value,
+  unit,
+  last = false,
 }: {
-  icon: typeof Gauge;
   label: string;
+  note: string;
   value: string;
+  unit?: string;
+  last?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card/60 p-4 text-center">
-      {/* Neutral: a stat is a value, and green means action. */}
-      <Icon className="mx-auto mb-2 size-4 text-muted-foreground" />
-      <p className="tabular-nums text-lg font-semibold tracking-tight">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-2xl border border-border bg-card/60 p-4">
-      <p className="font-medium">{label}</p>
-      <p className="text-muted-foreground">{value}</p>
+    <div
+      className={`flex items-center justify-between border-t border-border py-[17px] ${
+        last ? "border-b" : ""
+      }`}
+    >
+      <div className="flex flex-col gap-[3px]">
+        <div className="text-[15px] font-semibold leading-[1.2]">{label}</div>
+        <div className="t-meta">{note}</div>
+      </div>
+      <div className="text-[17px] font-semibold">
+        {value}
+        {unit && <span className="text-xs text-muted-foreground">{unit}</span>}
+      </div>
     </div>
   );
 }
