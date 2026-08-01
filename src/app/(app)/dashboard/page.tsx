@@ -79,9 +79,7 @@ async function TodayContent() {
 
       <TodaySession workout={day.workout} />
 
-      {runs.length > 0 && (
-        <OpenRow label={`${runs.length} runs banked`} href="/profile" />
-      )}
+      <OpenRow label="How recovered am I?" href="/recovery" />
 
       <div className="mt-auto pt-4">
         <StartRunAction workout={day.workout} />

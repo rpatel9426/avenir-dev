@@ -17,8 +17,9 @@ async function PlanContent() {
   const weekKm = weeklyDistanceKm(runs);
   const goalKm = profile.weekly_goal_km;
 
-  const days = (await getWeek()).map((day) => ({
+  const days = (await getWeek()).map((day, i) => ({
     ...day,
+    offset: i,
     detail:
       day.detail ??
       (day.workout
@@ -26,7 +27,9 @@ async function PlanContent() {
             day.workout.targetPace
           )} /km`
         : undefined),
-    href: day.workout ? `/run?w=${day.id}` : undefined,
+    // Rows open the session rather than starting it — depth on tap, and the
+    // open-mark is the only thing that promises it.
+    href: `/session/${i}`,
   }));
 
   const plannedKm = WEEK.reduce((sum, e) => {

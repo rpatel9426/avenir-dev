@@ -113,11 +113,42 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      <div className="mt-auto flex flex-col gap-4 pb-2">
-        <p className="t-meta">Tap any row for the full history.</p>
+      <div className="flex flex-col">
+        <NavRow label="Insights" note="Three things, once a week" href="/insights" />
+        <NavRow label="Recovery" note="What today should cost you" href="/recovery" />
+        <NavRow label="Settings" note="Coach, training, your data" href="/settings" last />
+      </div>
+
+      <div className="mt-auto pb-2">
         <SignOutButton />
       </div>
     </div>
+  );
+}
+
+function NavRow({
+  label,
+  note,
+  href,
+  last = false,
+}: {
+  label: string;
+  note: string;
+  href: string;
+  last?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`open-mark flex items-center justify-between gap-4 border-t border-border py-[15px] ${
+        last ? "border-b" : ""
+      }`}
+    >
+      <span className="flex flex-col gap-[3px]">
+        <span className="text-[15px] font-semibold leading-[1.2]">{label}</span>
+        <span className="t-meta">{note}</span>
+      </span>
+    </Link>
   );
 }
 
