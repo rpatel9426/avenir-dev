@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/landing/site-header";
 import { Hero } from "@/components/landing/hero";
+import { Difference } from "@/components/landing/difference";
 import { Features } from "@/components/landing/features";
 import { AppShowcase } from "@/components/landing/app-showcase";
 import { HowItWorks } from "@/components/landing/how-it-works";
@@ -14,13 +15,16 @@ export default function Home() {
     <div className="flex min-h-dvh flex-col">
       <SiteHeader />
       <main className="flex-1">
+        {/* The page argues one thing, in this order: the claim, the moment
+            that proves it, then everything that exists to set it up. */}
         <Hero />
-        <Features />
+        <Marquee />
+        <Difference />
         <AppShowcase />
         <HowItWorks />
+        <Features />
         <Testimonial />
         <FAQ />
-        <Marquee />
         <CTA />
       </main>
       <SiteFooter />

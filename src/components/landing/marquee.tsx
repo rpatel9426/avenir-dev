@@ -1,11 +1,13 @@
 import { LogoMark } from "@/components/brand/logo";
 
+/* The devices the coach reads from — a claim, not decoration. */
 const PHRASES = [
-  "Loved by every pace",
-  "Coached in real time",
-  "Run further",
-  "Chase the next kilometre",
-  "Your best run is ahead",
+  "Garmin",
+  "Apple Watch",
+  "Coros",
+  "Strava",
+  "Whoop",
+  "Oura",
 ];
 
 /**
@@ -19,7 +21,7 @@ export function Marquee() {
       <div className="flex shrink-0 animate-marquee items-center gap-6 whitespace-nowrap pr-6">
         {items.map((phrase, i) => (
           <span key={i} className="flex items-center gap-6">
-            <span className="text-sm font-medium tracking-tight text-foreground/80">
+            <span className="t-label">
               {phrase}
             </span>
             <LogoMark className="size-4 opacity-60" />

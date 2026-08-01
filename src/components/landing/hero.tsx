@@ -2,91 +2,70 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CoachPreview } from "@/components/landing/coach-preview";
-import { Topo } from "@/components/brand/topo";
 
+/**
+ * The page argues one thing — the coach talks to you mid-run — and the hero
+ * says it in a single antithesis. No feature list up here; the claim has to
+ * land before anything else is offered.
+ */
 export function Hero() {
   return (
-    <section className="relative overflow-hidden px-5 pt-28 pb-16 sm:pt-36">
-      {/* Ambient aurora glow + topographic contour texture. */}
+    <section className="relative overflow-hidden px-6 pb-16 pt-24 sm:pt-32">
       <div className="aurora pointer-events-none absolute inset-0 -z-10" />
-      <Topo className="absolute -right-40 -top-24 -z-10 h-[36rem] w-[36rem] text-border/50" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
 
-      <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
+      <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
+        <motion.span
+          className="t-label rounded-full bg-card px-3.5 py-2"
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5 }}
         >
-          <Badge variant="outline" className="label-mono mb-6 backdrop-blur">
-            <Sparkles className="size-3.5 text-accent" />
-            AI coaching, in your ear
-          </Badge>
-        </motion.div>
+          Now coaching out loud, mid-run
+        </motion.span>
 
         <motion.h1
-          className="text-balance text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl"
-          initial={{ opacity: 0, y: 20 }}
+          className="mt-7 max-w-3xl text-balance text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl"
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
         >
-          Every run,{" "}
-          <span className="font-editorial italic tracking-normal text-accent">
-            perfectly&nbsp;coached
+          Other apps tell you what you ran.
+          <br />
+          <span className="font-editorial font-normal italic tracking-normal text-accent">
+            Avenir runs with you.
           </span>
-          .
         </motion.h1>
 
         <motion.p
-          className="mt-5 max-w-md text-pretty text-lg text-muted-foreground"
-          initial={{ opacity: 0, y: 20 }}
+          className="mt-6 max-w-xl text-pretty text-lg leading-[1.5] text-muted-foreground"
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
         >
-          Avenir reads your pace, effort and rhythm in real time — then talks you
-          through it. Like having an elite coach on every stride.
+          An AI coach that knows your goal, your week and your legs — and says
+          the right thing at kilometre thirty, while you&apos;re still out
+          there.
         </motion.p>
 
         <motion.div
-          className="mt-8 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center"
-          initial={{ opacity: 0, y: 20 }}
+          className="mt-9 flex flex-col items-center gap-3 sm:flex-row"
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.19, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link href="/signup">
-              Start running free
-              <ArrowRight />
-            </Link>
+          <Button size="lg" asChild>
+            <Link href="/signup">Start training free</Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-            <Link href="/dashboard">Try the demo</Link>
+          <Button size="lg" variant="secondary" asChild>
+            <Link href="/dashboard">Hear the coach</Link>
           </Button>
         </motion.div>
 
-        <motion.p
-          className="mt-4 text-xs text-muted-foreground"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-        >
-          No credit card · No wearable required · Works on any phone
-        </motion.p>
+        <p className="t-label mt-6">
+          No credit card · Works with Garmin, Apple Watch, Coros
+        </p>
       </div>
-
-      {/* Floating live-coaching preview. */}
-      <motion.div
-        className="mx-auto mt-14 max-w-sm"
-        initial={{ opacity: 0, y: 40, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <CoachPreview />
-      </motion.div>
     </section>
   );
 }
