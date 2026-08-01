@@ -27,13 +27,17 @@ create table if not exists public.profiles (
   -- below deliberately lets a runner read these but never set them.
   stripe_customer_id text unique,
   stripe_subscription_id text,
+  -- Set by pain triage. While this is in the future, nothing is scheduled and
+  -- nothing counts against the runner.
+  plan_paused_until timestamptz,
   created_at timestamptz not null default now()
 );
 
 -- Safe to re-run on an existing database.
 alter table public.profiles
   add column if not exists stripe_customer_id text,
-  add column if not exists stripe_subscription_id text;
+  add column if not exists stripe_subscription_id text,
+  add column if not exists plan_paused_until timestamptz;
 
 create unique index if not exists profiles_stripe_customer_id_key
   on public.profiles (stripe_customer_id);

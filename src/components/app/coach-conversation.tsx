@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, Mic } from "lucide-react";
 import { Chip, CoachMessage, PlanDiff } from "@/components/ds/atoms";
 import { proposeChange, type PlanChange } from "@/lib/plan-change";
@@ -20,6 +21,14 @@ interface DiffTurn {
 
 /* Two openers, as drawn — the ones a runner actually reaches for. */
 const CHIPS = ["Move tomorrow", "Am I on track?"];
+
+/*
+ * Any report of pain enters triage and the coach may not prescribe through it.
+ * Catching it here matters because this is where a runner would naturally type
+ * it, and a generative reply is exactly the dangerous thing.
+ */
+const PAIN =
+  /\b(hurt|hurts|hurting|pain|painful|injur|sore|strain|sprain|tear|torn|ache|aching|niggl|shin split|tendon|tendinitis|plantar)\b/i;
 
 export function CoachConversation({
   opener,
@@ -41,6 +50,7 @@ export function CoachConversation({
   const endRef = useRef<HTMLDivElement>(null);
   // A monotonic counter rather than a clock: ids only need to be unique.
   const nextId = useRef(1);
+  const router = useRouter();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
@@ -55,6 +65,21 @@ export function CoachConversation({
     setDraft("");
     setNotice(null);
     setTurns((t) => [...t, { id: turnId, from: "runner", text }]);
+
+    // Pain never reaches the model. Triage first, always.
+    if (PAIN.test(text)) {
+      setTurns((t) => [
+        ...t,
+        {
+          id: turnId + 1,
+          from: "coach",
+          text: "Stop there — I'm not going to give you a plan until I understand this. Four questions.",
+        },
+      ]);
+      router.push("/triage");
+      return;
+    }
+
     setThinking(true);
 
     try {

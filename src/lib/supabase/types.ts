@@ -30,6 +30,8 @@ export interface Database {
           /** Set by the Stripe webhook; never written from the browser. */
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          /** While in the future, pain triage has paused the plan. */
+          plan_paused_until: string | null;
           created_at: string;
         };
         Insert: {
@@ -41,6 +43,7 @@ export interface Database {
           plan?: Plan;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          plan_paused_until?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;

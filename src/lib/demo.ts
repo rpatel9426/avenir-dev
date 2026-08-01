@@ -16,6 +16,7 @@ export const DEMO_PROFILE: Profile = {
   // The demo runner has never been through Stripe — there is nothing to bill.
   stripe_customer_id: null,
   stripe_subscription_id: null,
+  plan_paused_until: null,
   created_at: new Date().toISOString(),
 };
 

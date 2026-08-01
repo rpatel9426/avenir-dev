@@ -48,6 +48,19 @@ async function TodayContent() {
     </header>
   );
 
+  // A paused plan outranks everything. Triage decided the coach shouldn't be
+  // prescribing, so no session — and no start button — appears here.
+  const pausedUntil = profile.plan_paused_until
+    ? new Date(profile.plan_paused_until)
+    : null;
+  if (pausedUntil && pausedUntil > now) {
+    const daysLeft = Math.max(
+      1,
+      Math.ceil((pausedUntil.getTime() - now.getTime()) / 86_400_000)
+    );
+    return <Paused header={header} daysLeft={daysLeft} />;
+  }
+
   if (gap !== null && gap >= RETURN_THRESHOLD_DAYS) {
     return <TheReturn header={header} gapDays={gap} runs={runs} />;
   }
@@ -76,6 +89,58 @@ async function TodayContent() {
 
       <div className="mt-auto pt-4">
         <StartRunAction workout={day.workout} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Paused by triage. The hard stop, carried onto Today: nothing is scheduled,
+ * nothing counts against the runner, and there is no way to start a run from
+ * this screen — that's the requirement, not a styling choice.
+ */
+function Paused({
+  header,
+  daysLeft: days,
+}: {
+  header: React.ReactNode;
+  daysLeft: number;
+}) {
+  return (
+    <div className="flex min-h-[calc(100dvh-8rem)] flex-col gap-5">
+      {header}
+
+      <h1 className="t-voice">We&apos;re holding here.</h1>
+
+      <p className="t-lead text-foreground/80">
+        Your plan is paused while that settles. Nothing is scheduled and
+        nothing is counting against you.
+      </p>
+
+      <div className="flex flex-col gap-[9px] rounded-[18px] bg-attention-wash p-[18px]">
+        <div className="t-label tracking-[0.12em] text-attention-ink">
+          Paused
+        </div>
+        <p className="text-[13.5px] leading-[1.55] text-foreground/70">
+          {days} {days === 1 ? "day" : "days"} left. I&apos;ll ask how it feels
+          before we start again — there&apos;s room for this without losing the
+          goal.
+        </p>
+      </div>
+
+      <div className="mt-auto flex flex-col gap-3 pb-4">
+        <Link
+          href="/coach"
+          className="flex h-14 items-center justify-center rounded-full bg-primary text-[15px] font-bold text-primary-foreground"
+        >
+          Tell me how it feels
+        </Link>
+        <Link
+          href="/plan"
+          className="text-center text-[12.5px] font-medium text-muted-foreground"
+        >
+          See what&apos;s waiting
+        </Link>
       </div>
     </div>
   );

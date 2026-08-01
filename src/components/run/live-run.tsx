@@ -8,8 +8,12 @@ import { cn } from "@/lib/utils";
 import type { LiveMetrics, RunStatus, CoachLine } from "@/hooks/use-run-session";
 import type { Workout } from "@/lib/workouts";
 
-/* The silent path — a run club, a quiet street, or no breath to spare. */
-const SILENT_CHIPS = ["Something hurts", "This feels hard", "How far left?"];
+/*
+ * The silent path — a run club, a quiet street, or no breath to spare.
+ * "Something hurts" is the one chip that must not lead to a coaching reply:
+ * it enters triage, because the coach may not prescribe through pain.
+ */
+const SILENT_CHIPS = ["This feels hard", "How far left?"];
 
 export function LiveRun({
   workout,
@@ -100,6 +104,12 @@ export function LiveRun({
             Or say nothing — tap instead
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link
+              href="/triage"
+              className="rounded-[22px] border border-attention/40 bg-attention-wash px-4 py-[13px] text-[12.5px] font-semibold text-attention"
+            >
+              Something hurts
+            </Link>
             {SILENT_CHIPS.map((chip) => (
               <span
                 key={chip}
