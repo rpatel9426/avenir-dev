@@ -59,6 +59,21 @@ export default async function ProfilePage() {
         />
       </div>
 
+      {/* R2 · the model the coach holds of you, readable and correctable. */}
+      <Link
+        href="/about-you"
+        className="open-mark flex items-center justify-between rounded-[18px] bg-muted px-[18px] py-4"
+      >
+        <span className="flex flex-col gap-0.5">
+          <span className="text-[15px] font-semibold">
+            What I think I know about you
+          </span>
+          <span className="t-meta">
+            Everything that shapes what I ask of you. Change any of it.
+          </span>
+        </span>
+      </Link>
+
       <Link
         href="/pricing"
         className="open-mark flex items-center justify-between rounded-[18px] bg-muted px-[18px] py-4"
