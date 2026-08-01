@@ -97,6 +97,17 @@ export function LiveRun({
   const km = Math.max(1, Math.floor(metrics.distance / 1000) + 1);
   const { online, secondsLost } = useSignal();
 
+  /*
+   * Indoors, pace is fiction — a treadmill belt and a GPS disagree, and the
+   * honest response is to change which number is the hero rather than to
+   * estimate one. Cadence and heart rate are the only true readings in here,
+   * so distance is deliberately absent instead of guessed.
+   */
+  const [treadmill, setTreadmill] = useState(false);
+  const beltKmh = Math.round((3600 / workout.targetPace) * 2) / 2;
+  const maxHr = 190; // A standing-in estimate until a real profile value exists.
+  const hrPercent = Math.round((metrics.heartRate / maxHr) * 100);
+
   // Pace is the one number that has to be true, so it never animates and the
   // judgement beside it is a word, not a colour.
   const drift = metrics.currentPace - workout.targetPace;
@@ -125,9 +136,11 @@ export function LiveRun({
               online ? "text-foreground/50" : "text-attention"
             )}
           >
-            {online
-              ? `${workout.name} · KM ${km}`
-              : `Signal lost · ${secondsLost}s ago`}
+            {treadmill
+              ? `${workout.name} · Treadmill`
+              : online
+                ? `${workout.name} · KM ${km}`
+                : `Signal lost · ${secondsLost}s ago`}
           </span>
         </div>
         <button
@@ -142,26 +155,82 @@ export function LiveRun({
 
       {/* The metric. Nothing on this screen is louder — and when it can't be
           trusted it is dashed out rather than frozen at a lie. */}
-      <div className="flex flex-col gap-0.5">
-        <div className={cn("t-metric", !online && "text-tint-strong")}>
-          {online ? formatPace(metrics.currentPace) : "—:——"}
+      {treadmill ? (
+        <>
+          <div className="flex flex-col gap-0.5">
+            <div className="t-metric">{metrics.cadence}</div>
+            <div className="t-label text-tint-strong">
+              Cadence · target 170–176
+            </div>
+          </div>
+          <div className="flex gap-7">
+            <div className="flex flex-col gap-[5px]">
+              <div className="text-[25px] font-semibold tabular-nums">
+                {formatDuration(metrics.elapsed)}
+              </div>
+              <div className="t-label tracking-[0.1em]">Elapsed</div>
+            </div>
+            <div className="flex flex-col gap-[5px]">
+              <div className="text-[25px] font-semibold tabular-nums">
+                {hrPercent}
+                <span className="text-xs text-muted-foreground">%</span>
+              </div>
+              <div className="t-label tracking-[0.1em]">Of max HR</div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col gap-0.5">
+          <div className={cn("t-metric", !online && "text-tint-strong")}>
+            {online ? formatPace(metrics.currentPace) : "—:——"}
+          </div>
+          <div className="t-label text-tint-strong">
+            {online
+              ? `Pace /km · ${paused ? "PAUSED" : verdict}`
+              : "Pace unavailable · still recording"}
+          </div>
+          <div className="t-label mt-2 tracking-[0.1em] text-tint-strong">
+            {formatDuration(metrics.elapsed)} ·{" "}
+            {online
+              ? `${formatDistance(metrics.distance)} KM`
+              : `${formatDistance(metrics.distance)}* KM estimated`}
+          </div>
         </div>
-        <div className="t-label text-tint-strong">
-          {online
-            ? `Pace /km · ${paused ? "PAUSED" : verdict}`
-            : "Pace unavailable · still recording"}
-        </div>
-        <div className="t-label mt-2 tracking-[0.1em] text-tint-strong">
-          {formatDuration(metrics.elapsed)} ·{" "}
-          {online
-            ? `${formatDistance(metrics.distance)} KM`
-            : `${formatDistance(metrics.distance)}* KM estimated`}
-        </div>
-      </div>
+      )}
 
       {/* The coach. Voice out, and — for the full plan — voice in. Offline it
           degrades to what it can still measure rather than going silent. */}
-      {online ? (
+      {treadmill ? (
+        <>
+          <div className="flex flex-col gap-[9px] rounded-[20px] border border-attention/25 bg-attention-wash p-[18px]">
+            <div className="t-label tracking-[0.14em] text-attention">
+              No GPS indoors
+            </div>
+            <p className="text-[14.5px] leading-[1.5] text-foreground/90 text-pretty">
+              I can&apos;t see your pace in here, so I&apos;m coaching you on
+              effort and cadence instead. Set the belt to {beltKmh} km/h and put
+              it at 1% — that&apos;s your {workout.name.toLowerCase()} today.
+            </p>
+          </div>
+          <div className="flex items-center justify-between rounded-[18px] bg-secondary px-[18px] py-4">
+            <span className="flex flex-col gap-[3px]">
+              <span className="text-[13.5px] font-semibold leading-[1.2]">
+                Belt speed
+              </span>
+              <span className="text-[11.5px] leading-[1.2] text-muted-foreground">
+                Tell me if you change it
+              </span>
+            </span>
+            <span className="text-[15px] font-bold">
+              {beltKmh}
+              <span className="text-[11px] font-medium text-muted-foreground">
+                {" "}
+                KM/H
+              </span>
+            </span>
+          </div>
+        </>
+      ) : online ? (
         <CoachFeed
           cues={cues}
           speaking={speaking}
@@ -263,13 +332,23 @@ export function LiveRun({
           "incomplete" is banned — this ends the run and the summary states
           what the short run achieved.
         */}
-        <button
-          type="button"
-          onClick={onFinish}
-          className="h-11 text-[12.5px] font-semibold text-muted-foreground"
-        >
-          Wrap it up
-        </button>
+        <div className="flex items-center justify-center gap-5">
+          <button
+            type="button"
+            onClick={onFinish}
+            className="h-11 text-[12.5px] font-semibold text-muted-foreground"
+          >
+            Wrap it up
+          </button>
+          <button
+            type="button"
+            onClick={() => setTreadmill((t) => !t)}
+            aria-pressed={treadmill}
+            className="h-11 text-[12.5px] font-semibold text-muted-foreground"
+          >
+            {treadmill ? "I'm outside" : "I'm on a treadmill"}
+          </button>
+        </div>
       </div>
     </div>
   );
