@@ -27,6 +27,9 @@ export interface Database {
           weekly_goal_km: number;
           preferred_pace_sec_per_km: number | null;
           plan: Plan;
+          /** Set by the Stripe webhook; never written from the browser. */
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -36,6 +39,8 @@ export interface Database {
           weekly_goal_km?: number;
           preferred_pace_sec_per_km?: number | null;
           plan?: Plan;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;

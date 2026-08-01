@@ -1,40 +1,14 @@
 import Link from "next/link";
 import { getProfile, getRecentRuns } from "@/lib/session";
-import { getWorkout } from "@/lib/workouts";
 import { weeklyDistanceKm } from "@/lib/stats";
+import { LOAD, WEEK, plannedWeek } from "@/lib/plan";
+import { getWorkout } from "@/lib/workouts";
 import { WorkoutRow } from "@/components/ds/atoms";
 import { formatPace } from "@/lib/utils";
-import type { RunGoal } from "@/lib/supabase/types";
 
 export default function PlanPage() {
   return <PlanContent />;
 }
-
-/** Relative effort. Load is shown as a bar width, not a number. */
-const LOAD: Record<string, number> = {
-  recovery: 0.35,
-  easy: 0.5,
-  long: 1,
-  tempo: 0.8,
-  intervals: 0.9,
-  race: 1,
-  strength: 0.4,
-  rest: 0,
-};
-
-/**
- * The week the coach has written, Monday first. A rest day is a row like any
- * other — the plan includes not running, so it can't be read as a gap.
- */
-const WEEK: { id: RunGoal | "rest" | "strength"; detail?: string; tag?: string }[] = [
-  { id: "rest" },
-  { id: "easy" },
-  { id: "strength", detail: "25 min · calves & hips" },
-  { id: "easy", detail: "30 min · calf permitting", tag: "Moved" },
-  { id: "rest" },
-  { id: "tempo" },
-  { id: "long", detail: "Conversational throughout" },
-];
 
 async function PlanContent() {
   const [profile, runs] = await Promise.all([getProfile(), getRecentRuns()]);
@@ -42,37 +16,17 @@ async function PlanContent() {
   const weekKm = weeklyDistanceKm(runs);
   const goalKm = profile.weekly_goal_km;
 
-  // Monday of the current week, so the rows line up with real calendar days.
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-
-  const days = WEEK.map((entry, i) => {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
-
-    const isRun = entry.id !== "rest" && entry.id !== "strength";
-    const workout = isRun ? getWorkout(entry.id) : null;
-
-    return {
-      ...entry,
-      date,
-      isToday: date.toDateString() === now.toDateString(),
-      name: workout
-        ? workout.name
-        : entry.id === "strength"
-          ? "Strength"
-          : "Rest",
-      detail:
-        entry.detail ??
-        (workout
-          ? `${workout.durationLabel.replace("~", "")} · ${formatPace(
-              workout.targetPace
-            )} /km`
-          : undefined),
-      href: workout ? `/run?w=${entry.id}` : undefined,
-    };
-  });
+  const days = plannedWeek().map((day) => ({
+    ...day,
+    detail:
+      day.detail ??
+      (day.workout
+        ? `${day.workout.durationLabel.replace("~", "")} · ${formatPace(
+            day.workout.targetPace
+          )} /km`
+        : undefined),
+    href: day.workout ? `/run?w=${day.id}` : undefined,
+  }));
 
   const plannedKm = WEEK.reduce((sum, e) => {
     if (e.id === "rest" || e.id === "strength") return sum;

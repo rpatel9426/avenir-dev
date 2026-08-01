@@ -23,8 +23,20 @@ create table if not exists public.profiles (
   weekly_goal_km numeric not null default 30,
   preferred_pace_sec_per_km integer,
   plan text not null default 'free',
+  -- Billing. Written only by the Stripe webhook (service role); the RLS policy
+  -- below deliberately lets a runner read these but never set them.
+  stripe_customer_id text unique,
+  stripe_subscription_id text,
   created_at timestamptz not null default now()
 );
+
+-- Safe to re-run on an existing database.
+alter table public.profiles
+  add column if not exists stripe_customer_id text,
+  add column if not exists stripe_subscription_id text;
+
+create unique index if not exists profiles_stripe_customer_id_key
+  on public.profiles (stripe_customer_id);
 
 -- Runs ------------------------------------------------------------------------
 create table if not exists public.runs (

@@ -13,6 +13,9 @@ export const DEMO_PROFILE: Profile = {
   weekly_goal_km: 30,
   preferred_pace_sec_per_km: 330,
   plan: "premium", // demo shows the full experience, incl. voice conversation
+  // The demo runner has never been through Stripe — there is nothing to bill.
+  stripe_customer_id: null,
+  stripe_subscription_id: null,
   created_at: new Date().toISOString(),
 };
 
