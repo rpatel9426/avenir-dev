@@ -46,7 +46,7 @@ export function RunSummary({
       distance_m: metrics.distance,
       duration_s: metrics.elapsed,
       avg_pace_sec_per_km: metrics.avgPace,
-      avg_heart_rate: metrics.heartRate,
+      avg_heart_rate: metrics.heartRate ?? null,
       calories: metrics.calories,
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps

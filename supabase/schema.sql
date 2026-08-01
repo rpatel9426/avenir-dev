@@ -30,6 +30,8 @@ create table if not exists public.profiles (
   -- Set by pain triage. While this is in the future, nothing is scheduled and
   -- nothing counts against the runner.
   plan_paused_until timestamptz,
+  -- Display only. Everything is stored metric and converted at the edge.
+  units text not null default 'km',
   created_at timestamptz not null default now()
 );
 
@@ -37,7 +39,8 @@ create table if not exists public.profiles (
 alter table public.profiles
   add column if not exists stripe_customer_id text,
   add column if not exists stripe_subscription_id text,
-  add column if not exists plan_paused_until timestamptz;
+  add column if not exists plan_paused_until timestamptz,
+  add column if not exists units text not null default 'km';
 
 create unique index if not exists profiles_stripe_customer_id_key
   on public.profiles (stripe_customer_id);

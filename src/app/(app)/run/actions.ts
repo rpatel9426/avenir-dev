@@ -9,7 +9,8 @@ export interface SaveRunInput {
   distance_m: number;
   duration_s: number;
   avg_pace_sec_per_km: number;
-  avg_heart_rate: number;
+  /** Null when no sensor was connected — never an estimate. */
+  avg_heart_rate: number | null;
   calories: number;
 }
 
@@ -40,7 +41,8 @@ export async function saveRun(input: SaveRunInput): Promise<SaveRunResult> {
     distance_m: Math.round(input.distance_m),
     duration_s: Math.round(input.duration_s),
     avg_pace_sec_per_km: Math.round(input.avg_pace_sec_per_km),
-    avg_heart_rate: Math.round(input.avg_heart_rate),
+    avg_heart_rate:
+      input.avg_heart_rate === null ? null : Math.round(input.avg_heart_rate),
     calories: Math.round(input.calories),
     started_at: new Date(Date.now() - input.duration_s * 1000).toISOString(),
   });

@@ -26,7 +26,8 @@ export function RunSession({
   premium: boolean;
 }) {
   const session = useRunSession(workout);
-  const { status, start, reset, cues, metrics, pushRunner, pushCoach } = session;
+  const { status, start, reset, cues, metrics, gps, pushRunner, pushCoach } =
+    session;
 
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [handsFree, setHandsFree] = useState(false);
@@ -69,8 +70,9 @@ export function RunSession({
         distanceKm: m.distance / 1000,
         currentPace: m.currentPace,
         targetPace: workout.targetPace,
-        heartRate: m.heartRate,
-        cadence: m.cadence,
+        // Zero means "not measured" — the responder skips those cues.
+        heartRate: m.heartRate ?? 0,
+        cadence: m.cadence ?? 0,
       };
       try {
         const res = await fetch("/api/coach", {
@@ -143,6 +145,7 @@ export function RunSession({
       metrics={metrics}
       cues={cues}
       status={status}
+      gps={gps}
       voiceEnabled={voiceEnabled}
       onToggleVoice={toggleVoice}
       speaking={speaking}

@@ -6,7 +6,12 @@ import { Loader2, Lock } from "lucide-react";
 import { CoachFeed } from "@/components/run/coach-feed";
 import { formatDistance, formatDuration, formatPace } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import type { LiveMetrics, RunStatus, CoachLine } from "@/hooks/use-run-session";
+import type {
+  LiveMetrics,
+  RunStatus,
+  CoachLine,
+  GpsState,
+} from "@/hooks/use-run-session";
 import type { Workout } from "@/lib/workouts";
 
 /*
@@ -63,6 +68,7 @@ export function LiveRun({
   metrics,
   cues,
   status,
+  gps,
   voiceEnabled,
   onToggleVoice,
   speaking,
@@ -80,6 +86,7 @@ export function LiveRun({
   metrics: LiveMetrics;
   cues: CoachLine[];
   status: RunStatus;
+  gps: GpsState;
   voiceEnabled: boolean;
   onToggleVoice: () => void;
   speaking: boolean;
@@ -97,6 +104,17 @@ export function LiveRun({
   const km = Math.max(1, Math.floor(metrics.distance / 1000) + 1);
   const { online, secondsLost } = useSignal();
 
+  // Pace is only true once there are enough fixes to compute it from.
+  const hasPace = gps === "tracking" && metrics.currentPace > 0;
+  const gpsLabel =
+    gps === "denied"
+      ? "Location is off"
+      : gps === "unavailable"
+        ? "No location on this device"
+        : gps === "acquiring"
+          ? "Finding you"
+          : null;
+
   /*
    * Indoors, pace is fiction — a treadmill belt and a GPS disagree, and the
    * honest response is to change which number is the hero rather than to
@@ -106,7 +124,10 @@ export function LiveRun({
   const [treadmill, setTreadmill] = useState(false);
   const beltKmh = Math.round((3600 / workout.targetPace) * 2) / 2;
   const maxHr = 190; // A standing-in estimate until a real profile value exists.
-  const hrPercent = Math.round((metrics.heartRate / maxHr) * 100);
+  const hrPercent =
+    metrics.heartRate === null
+      ? null
+      : Math.round((metrics.heartRate / maxHr) * 100);
 
   // Pace is the one number that has to be true, so it never animates and the
   // judgement beside it is a word, not a colour.
@@ -120,27 +141,29 @@ export function LiveRun({
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="relative flex size-[7px]">
-            {!paused && online && (
+            {!paused && online && !gpsLabel && (
               <span className="animate-pulse-soft absolute inset-0 rounded-full bg-accent" />
             )}
             <span
               className={cn(
                 "relative size-[7px] rounded-full",
-                online ? "bg-accent" : "bg-attention"
+                gpsLabel || !online ? "bg-attention" : "bg-accent"
               )}
             />
           </span>
           <span
             className={cn(
               "t-label",
-              online ? "text-foreground/50" : "text-attention"
+              gpsLabel || !online ? "text-attention" : "text-foreground/50"
             )}
           >
             {treadmill
               ? `${workout.name} · Treadmill`
-              : online
-                ? `${workout.name} · KM ${km}`
-                : `Signal lost · ${secondsLost}s ago`}
+              : gpsLabel
+                ? gpsLabel
+                : online
+                  ? `${workout.name} · KM ${km}`
+                  : `Signal lost · ${secondsLost}s ago`}
           </span>
         </div>
         <button
@@ -149,7 +172,11 @@ export function LiveRun({
           aria-pressed={voiceEnabled}
           className="t-label text-tint-strong"
         >
-          {voiceEnabled ? `${metrics.heartRate} BPM` : "MUTED"}
+          {!voiceEnabled
+            ? "MUTED"
+            : metrics.heartRate === null
+              ? "NO HR SENSOR"
+              : `${metrics.heartRate} BPM`}
         </button>
       </header>
 
@@ -172,8 +199,10 @@ export function LiveRun({
             </div>
             <div className="flex flex-col gap-[5px]">
               <div className="text-[25px] font-semibold tabular-nums">
-                {hrPercent}
-                <span className="text-xs text-muted-foreground">%</span>
+                {hrPercent ?? "—"}
+                {hrPercent !== null && (
+                  <span className="text-xs text-muted-foreground">%</span>
+                )}
               </div>
               <div className="t-label tracking-[0.1em]">Of max HR</div>
             </div>
@@ -181,19 +210,21 @@ export function LiveRun({
         </>
       ) : (
         <div className="flex flex-col gap-0.5">
-          <div className={cn("t-metric", !online && "text-tint-strong")}>
-            {online ? formatPace(metrics.currentPace) : "—:——"}
+          <div className={cn("t-metric", !hasPace && "text-tint-strong")}>
+            {hasPace ? formatPace(metrics.currentPace) : "—:——"}
           </div>
           <div className="t-label text-tint-strong">
-            {online
-              ? `Pace /km · ${paused ? "PAUSED" : verdict}`
-              : "Pace unavailable · still recording"}
+            {gps === "denied"
+              ? "Turn location on to measure this run"
+              : gps === "unavailable"
+                ? "This device can't measure distance"
+                : hasPace
+                  ? `Pace /km · ${paused ? "PAUSED" : verdict}`
+                  : "Pace /km · still recording"}
           </div>
           <div className="t-label mt-2 tracking-[0.1em] text-tint-strong">
-            {formatDuration(metrics.elapsed)} ·{" "}
-            {online
-              ? `${formatDistance(metrics.distance)} KM`
-              : `${formatDistance(metrics.distance)}* KM estimated`}
+            {formatDuration(metrics.elapsed)} · {formatDistance(metrics.distance)}{" "}
+            KM
           </div>
         </div>
       )}

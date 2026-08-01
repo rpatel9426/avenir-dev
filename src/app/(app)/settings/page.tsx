@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getProfile } from "@/lib/session";
 import { isPremium } from "@/lib/entitlements";
-import { formatPace } from "@/lib/utils";
+import { formatPaceIn, isUnits, paceLabel, type Units } from "@/lib/units";
+import { GoalAndUnits } from "@/components/app/goal-and-units";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { getBeliefs } from "@/lib/beliefs";
@@ -15,6 +16,7 @@ import { getBeliefs } from "@/lib/beliefs";
 export default async function SettingsPage() {
   const [profile, beliefs] = await Promise.all([getProfile(), getBeliefs()]);
   const premium = isPremium(profile);
+  const units: Units = isUnits(profile.units) ? profile.units : "km";
 
   return (
     <div className="flex min-h-[calc(100dvh-11rem)] flex-col gap-6">
@@ -45,18 +47,20 @@ export default async function SettingsPage() {
           value={beliefs.best_days?.value ?? "Tue Thu Sat Sun"}
           href="/about-you"
         />
-        <Row label="Weekly goal" value={`${profile.weekly_goal_km} km`} href="/about-you" />
         <Row
           label="Easy pace"
           value={
             profile.preferred_pace_sec_per_km
-              ? `${formatPace(profile.preferred_pace_sec_per_km)} /km`
+              ? `${formatPaceIn(profile.preferred_pace_sec_per_km, units)} ${paceLabel(units)}`
               : "Still learning"
           }
           href="/about-you"
           last
         />
       </Group>
+
+      {/* The two the runner actually reaches for, editable in place. */}
+      <GoalAndUnits weeklyGoalKm={profile.weekly_goal_km} units={units} />
 
       <Group title="You">
         <Row label="What I know about you" value="" href="/about-you" />

@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { weekStart } from "@/lib/plan";
+import { isoDate } from "@/lib/plan-store";
 import type { BeliefKey } from "@/lib/beliefs";
 
 /**
@@ -34,6 +36,28 @@ export async function correctBelief(
     },
     { onConflict: "user_id,key" }
   );
+
+  /*
+   * Absorbed, not filed. Changing which days you can run has to actually
+   * reshape the week — otherwise the correction is cosmetic, which is exactly
+   * the failure the design critique calls out. Clearing the untouched days of
+   * this week makes the next read rebuild them from the new answer; days
+   * already run, or already edited by the coach, are left alone.
+   */
+  if (key === "best_days" && !error) {
+    const monday = weekStart();
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    await supabase
+      .from("plan_sessions")
+      .delete()
+      .eq("user_id", user.id)
+      .is("tag", null)
+      .is("completed_run_id", null)
+      .gte("scheduled_on", isoDate(monday))
+      .lte("scheduled_on", isoDate(sunday));
+  }
 
   revalidatePath("/about-you");
   revalidatePath("/dashboard");

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { LOAD, WEEK, plannedWeek, weekStart, type PlannedDay } from "@/lib/plan";
+import { LOAD, plannedWeek, weekStart, type PlannedDay } from "@/lib/plan";
+import { buildWeek, parseDays } from "@/lib/build-week";
 import { getWorkout } from "@/lib/workouts";
 import type { RunGoal } from "@/lib/supabase/types";
 
@@ -89,8 +90,29 @@ export async function getWeek(now = new Date()): Promise<PlannedDay[]> {
     return rows.map((r) => toPlannedDay(r, now));
   }
 
-  // First look at this week — write the template, then use it.
-  const seed = WEEK.map((entry, i) => {
+  // First look at this week — build it from what the coach knows, write it,
+  // then use it. Experience level and available days are the two inputs that
+  // genuinely change a week's shape, so both are read before anything is
+  // written.
+  const [{ data: profile }, { data: beliefRows }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("experience_level")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("coach_beliefs")
+      .select("key, value")
+      .eq("user_id", user.id)
+      .eq("key", "best_days"),
+  ]);
+
+  const template = buildWeek(
+    profile?.experience_level ?? "beginner",
+    parseDays(beliefRows?.[0]?.value)
+  );
+
+  const seed = template.map((entry, i) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
     return {

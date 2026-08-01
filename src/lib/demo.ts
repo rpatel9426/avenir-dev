@@ -17,6 +17,7 @@ export const DEMO_PROFILE: Profile = {
   stripe_customer_id: null,
   stripe_subscription_id: null,
   plan_paused_until: null,
+  units: "km",
   created_at: new Date().toISOString(),
 };
 
