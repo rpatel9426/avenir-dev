@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getProfile, getRecentRuns } from "@/lib/session";
 import { weeklyDistanceKm } from "@/lib/stats";
-import { LOAD, WEEK, plannedWeek } from "@/lib/plan";
+import { LOAD, WEEK } from "@/lib/plan";
+import { getWeek } from "@/lib/plan-store";
 import { getWorkout } from "@/lib/workouts";
 import { WorkoutRow } from "@/components/ds/atoms";
 import { formatPace } from "@/lib/utils";
@@ -16,7 +17,7 @@ async function PlanContent() {
   const weekKm = weeklyDistanceKm(runs);
   const goalKm = profile.weekly_goal_km;
 
-  const days = plannedWeek().map((day) => ({
+  const days = (await getWeek()).map((day) => ({
     ...day,
     detail:
       day.detail ??

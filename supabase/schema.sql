@@ -60,6 +60,44 @@ create table if not exists public.runs (
 create index if not exists runs_user_started_idx
   on public.runs (user_id, started_at desc);
 
+-- Plan sessions ---------------------------------------------------------------
+-- The runner's actual week. Without this, a plan change accepted in Coach only
+-- ever changed what was on screen — the Plan tab still showed the old session
+-- and a refresh lost it. `kind` is text rather than the run_goal enum because
+-- a week legitimately contains rest and strength days.
+create table if not exists public.plan_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  scheduled_on date not null,
+  kind text not null default 'easy',
+  detail text,
+  -- A coach edit is tagged, never silent.
+  tag text,
+  load numeric not null default 0.5,
+  completed_run_id uuid references public.runs (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, scheduled_on)
+);
+
+create index if not exists plan_sessions_user_date_idx
+  on public.plan_sessions (user_id, scheduled_on);
+
+-- Coach beliefs ---------------------------------------------------------------
+-- What the coach thinks it knows about the runner, and whether the runner has
+-- corrected it. Every claim on /about-you is a row here, so a correction is
+-- absorbed rather than filed.
+create table if not exists public.coach_beliefs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  key text not null,
+  value text not null,
+  -- Null while the coach inferred it; set the moment the runner corrects it.
+  corrected_at timestamptz,
+  updated_at timestamptz not null default now(),
+  unique (user_id, key)
+);
+
 -- Coaching messages -----------------------------------------------------------
 -- The transcript of what Avenir said during a run (optional to persist).
 create table if not exists public.coaching_messages (
@@ -74,7 +112,18 @@ create table if not exists public.coaching_messages (
 -- Row Level Security ----------------------------------------------------------
 alter table public.profiles enable row level security;
 alter table public.runs enable row level security;
+alter table public.plan_sessions enable row level security;
+alter table public.coach_beliefs enable row level security;
 alter table public.coaching_messages enable row level security;
+
+-- Plan sessions and beliefs: a runner sees and edits only their own.
+drop policy if exists "plan sessions are owned" on public.plan_sessions;
+create policy "plan sessions are owned" on public.plan_sessions
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "beliefs are owned" on public.coach_beliefs;
+create policy "beliefs are owned" on public.coach_beliefs
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Profiles: a user sees and edits only their own row.
 drop policy if exists "profiles are self-service" on public.profiles;

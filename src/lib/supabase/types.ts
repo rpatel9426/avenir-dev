@@ -79,6 +79,54 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["runs"]["Insert"]>;
         Relationships: [];
       };
+      plan_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          scheduled_on: string;
+          kind: string;
+          detail: string | null;
+          tag: string | null;
+          load: number;
+          completed_run_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          scheduled_on: string;
+          kind?: string;
+          detail?: string | null;
+          tag?: string | null;
+          load?: number;
+          completed_run_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["plan_sessions"]["Insert"]>;
+        Relationships: [];
+      };
+      coach_beliefs: {
+        Row: {
+          id: string;
+          user_id: string;
+          key: string;
+          value: string;
+          corrected_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          key: string;
+          value: string;
+          corrected_at?: string | null;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["coach_beliefs"]["Insert"]>;
+        Relationships: [];
+      };
       coaching_messages: {
         Row: {
           id: string;

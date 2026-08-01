@@ -16,43 +16,53 @@ export interface PlanChange {
   before: string;
   /** What it would say instead. */
   after: string;
+  /** Days from Monday, so the change lands on a real row in plan_sessions. */
+  weekdayOffset: number;
+  /** The session kind it becomes. */
+  kind: string;
+  detail: string | null;
 }
 
 const RULES: { test: RegExp; change: PlanChange }[] = [
   {
-    // Pain and tightness never gamble — the session comes down, not out.
-    test: /(hurt|pain|sore|tight|niggl|calf|knee|shin|achilles|hamstring)/i,
-    change: {
-      before: "Thu · Tempo 8 km",
-      after: "Thu · Easy 30′",
-    },
-  },
-  {
+    // Can't run today — the session moves rather than disappearing.
     test: /(can'?t run|no time|skip|busy|travel|away)/i,
     change: {
-      before: "Thu · Tempo 8 km",
-      after: "Sat · Tempo 8 km",
+      before: "Thu · Tempo",
+      after: "Sat · Tempo",
+      weekdayOffset: 5,
+      kind: "tempo",
+      detail: "Moved from Thursday",
     },
   },
   {
     test: /(tired|exhaust|drained|heavy|wrecked|slept badly|no sleep)/i,
     change: {
-      before: "Tomorrow · Intervals",
-      after: "Tomorrow · Easy 25′",
+      before: "Thu · Tempo",
+      after: "Thu · Easy 25′",
+      weekdayOffset: 3,
+      kind: "easy",
+      detail: "25 min · you were flat",
     },
   },
   {
     test: /(move|reschedul|swap|shift|tomorrow)/i,
     change: {
-      before: "Tomorrow · Intervals",
-      after: "Fri · Intervals",
+      before: "Thu · Tempo",
+      after: "Fri · Tempo",
+      weekdayOffset: 4,
+      kind: "tempo",
+      detail: "Moved from Thursday",
     },
   },
   {
     test: /(easier|too hard|too much|reduce|cut back|lighter)/i,
     change: {
-      before: "Sat · Long run 21 km",
-      after: "Sat · Long run 18 km",
+      before: "Sun · Long run",
+      after: "Sun · Long run, shorter",
+      weekdayOffset: 6,
+      kind: "long",
+      detail: "Shortened · conversational throughout",
     },
   },
 ];

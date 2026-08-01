@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Mic } from "lucide-react";
 import { Chip, CoachMessage, PlanDiff } from "@/components/ds/atoms";
 import { proposeChange, type PlanChange } from "@/lib/plan-change";
+import { applyPlanChange, revertPlanChange } from "@/app/(app)/coach/actions";
 
 interface Turn {
   id: number;
@@ -17,6 +18,8 @@ interface DiffTurn {
   afterTurn: number;
   change: PlanChange;
   status: "pending" | "accepted" | "declined";
+  /** What the session was before, so Undo restores it exactly. */
+  previous?: { kind: string; detail: string | null; tag: string | null };
 }
 
 /* Two openers, as drawn — the ones a runner actually reaches for. */
@@ -134,8 +137,36 @@ export function CoachConversation({
     }
   }
 
-  function setDiffStatus(id: number, status: DiffTurn["status"]) {
-    setDiffs((d) => d.map((x) => (x.id === id ? { ...x, status } : x)));
+  /** Accept writes the session; undo puts back exactly what was there. */
+  async function accept(diff: DiffTurn) {
+    setDiffs((d) =>
+      d.map((x) => (x.id === diff.id ? { ...x, status: "accepted" } : x))
+    );
+    const res = await applyPlanChange(
+      diff.change.weekdayOffset,
+      diff.change.kind,
+      diff.change.detail
+    );
+    if (res.previous) {
+      setDiffs((d) =>
+        d.map((x) => (x.id === diff.id ? { ...x, previous: res.previous } : x))
+      );
+    }
+  }
+
+  async function decline(diff: DiffTurn) {
+    if (diff.status === "accepted") {
+      setDiffs((d) =>
+        d.map((x) => (x.id === diff.id ? { ...x, status: "pending" } : x))
+      );
+      if (diff.previous) {
+        await revertPlanChange(diff.change.weekdayOffset, diff.previous);
+      }
+      return;
+    }
+    setDiffs((d) =>
+      d.map((x) => (x.id === diff.id ? { ...x, status: "declined" } : x))
+    );
   }
 
   return (
@@ -152,13 +183,8 @@ export function CoachConversation({
                   before={d.change.before}
                   after={d.change.after}
                   status={d.status}
-                  onAccept={() => setDiffStatus(d.id, "accepted")}
-                  onDecline={() =>
-                    setDiffStatus(
-                      d.id,
-                      d.status === "accepted" ? "pending" : "declined"
-                    )
-                  }
+                  onAccept={() => accept(d)}
+                  onDecline={() => decline(d)}
                 />
               ))}
           </div>

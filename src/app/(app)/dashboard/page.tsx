@@ -1,12 +1,8 @@
 import Link from "next/link";
 import { getProfile, getRecentRuns } from "@/lib/session";
 import { greeting, weeklyDistanceKm } from "@/lib/stats";
-import {
-  RETURN_THRESHOLD_DAYS,
-  daysSinceLastRun,
-  plannedWeek,
-  today as plannedToday,
-} from "@/lib/plan";
+import { RETURN_THRESHOLD_DAYS, daysSinceLastRun } from "@/lib/plan";
+import { getToday, getWeek } from "@/lib/plan-store";
 import { StartRunAction, TodaySession } from "@/components/app/today-session";
 import { OpenRow } from "@/components/ds/atoms";
 import type { Run } from "@/lib/supabase/types";
@@ -29,7 +25,7 @@ async function TodayContent() {
   const [profile, runs] = await Promise.all([getProfile(), getRecentRuns()]);
 
   const now = new Date();
-  const day = plannedToday(now);
+  const day = await getToday(now);
   const weekKm = weeklyDistanceKm(runs);
   const goalKm = profile.weekly_goal_km;
   const name = profile.display_name ?? "Runner";
@@ -151,7 +147,7 @@ function Paused({
  * bottom respects the runner who feels great without letting the plan be
  * quietly overridden.
  */
-function RestDay({
+async function RestDay({
   header,
   name,
   day,
@@ -160,7 +156,7 @@ function RestDay({
   name: string;
   day: PlannedDay;
 }) {
-  const week = plannedWeek();
+  const week = await getWeek();
   const tomorrow = week.find((d) => d.date > day.date && d.workout);
   const runs = week.filter((d) => d.workout);
   const km = runs.reduce((sum, d) => sum + (d.workout?.distance ?? 0) / 1000, 0);
@@ -225,7 +221,7 @@ function RestDay({
  * revised forecast and a twenty-minute way back in. "The runner never starts
  * over" is a design constraint, not a tagline.
  */
-function TheReturn({
+async function TheReturn({
   header,
   gapDays,
   runs,
@@ -234,7 +230,7 @@ function TheReturn({
   gapDays: number;
   runs: Run[];
 }) {
-  const week = plannedWeek();
+  const week = await getWeek();
   const longest = week.reduce(
     (max, d) => Math.max(max, (d.workout?.distance ?? 0) / 1000),
     0

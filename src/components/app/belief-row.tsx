@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { correctBelief } from "@/app/(app)/about-you/actions";
+import type { BeliefKey } from "@/lib/beliefs";
 
 interface Option {
   value: string;
@@ -16,24 +18,28 @@ interface Option {
  * than no correction at all.
  */
 export function BeliefRow({
+  id,
   label,
   note,
   value,
   options = [],
   readOnly = false,
+  wasCorrected = false,
   last = false,
 }: {
-  id: string;
+  id: BeliefKey | "confidence";
   label: string;
   note: string;
   value: string;
   options?: Option[];
   readOnly?: boolean;
+  /** True when this value came from the runner rather than the coach. */
+  wasCorrected?: boolean;
   last?: boolean;
 }) {
   const [current, setCurrent] = useState(value);
   const [open, setOpen] = useState(false);
-  const [corrected, setCorrected] = useState(false);
+  const [corrected, setCorrected] = useState(wasCorrected);
 
   const editable = !readOnly && options.length > 0;
 
@@ -50,7 +56,7 @@ export function BeliefRow({
             {label}
           </span>
           <span className="text-[11px] leading-[1.2] text-muted-foreground">
-            {corrected ? "You corrected this just now" : note}
+            {corrected ? "You corrected this" : note}
           </span>
         </span>
         <span
@@ -76,10 +82,15 @@ export function BeliefRow({
             <button
               key={o.value}
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 setCurrent(o.value);
-                setCorrected(o.value !== value);
+                setCorrected(true);
                 setOpen(false);
+                // Absorbed, not filed — this writes, and the screens that act
+                // on it are revalidated by the action.
+                if (id !== "confidence") {
+                  await correctBelief(id, o.value).catch(() => {});
+                }
               }}
               className={cn(
                 "rounded-[14px] px-4 py-3 text-left text-[13px] font-medium transition-colors",

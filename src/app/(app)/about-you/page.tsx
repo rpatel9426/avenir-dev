@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getProfile, getRecentRuns } from "@/lib/session";
 import { formatPace } from "@/lib/utils";
 import { BeliefRow } from "@/components/app/belief-row";
+import { DEFAULT_BELIEFS, getBeliefs } from "@/lib/beliefs";
 
 /**
  * What I think I know about you.
@@ -13,9 +14,19 @@ import { BeliefRow } from "@/components/app/belief-row";
  * It doubles as the privacy answer the product never gave.
  */
 export default async function AboutYouPage() {
-  const [profile, runs] = await Promise.all([getProfile(), getRecentRuns()]);
+  const [profile, runs, beliefs] = await Promise.all([
+    getProfile(),
+    getRecentRuns(),
+    getBeliefs(),
+  ]);
 
   const easyPace = profile.preferred_pace_sec_per_km;
+
+  // A stored correction wins over what the coach inferred — that's the point.
+  const held = (key: keyof typeof DEFAULT_BELIEFS, inferred?: string) =>
+    beliefs[key]?.value ?? inferred ?? DEFAULT_BELIEFS[key];
+  const wasCorrected = (key: keyof typeof DEFAULT_BELIEFS) =>
+    beliefs[key]?.corrected ?? false;
 
   // The coach admits it's still guessing early on. Certainty with no confidence
   // signal is how an AI coach becomes confidently wrong to a beginner.
@@ -40,7 +51,8 @@ export default async function AboutYouPage() {
           id="easy_pace"
           label="Easy pace"
           note={runs.length > 0 ? `From ${runs.length} runs` : "Not learned yet"}
-          value={easyPace ? formatPace(easyPace) : "Still learning"}
+          value={held("easy_pace", easyPace ? formatPace(easyPace) : undefined)}
+          wasCorrected={wasCorrected("easy_pace")}
           options={
             easyPace
               ? [
@@ -55,7 +67,8 @@ export default async function AboutYouPage() {
           id="sleep_sensitivity"
           label="Sleep sensitivity"
           note="How much a short night changes my advice"
-          value="Medium"
+          value={held("sleep_sensitivity")}
+          wasCorrected={wasCorrected("sleep_sensitivity")}
           options={[
             { value: "Low", label: "I run fine on little sleep" },
             { value: "Medium", label: "It affects me somewhat" },
@@ -66,7 +79,8 @@ export default async function AboutYouPage() {
           id="watching"
           label="Niggles I'm watching"
           note="From what you've told me in triage"
-          value="Nothing right now"
+          value={held("watching")}
+          wasCorrected={wasCorrected("watching")}
           options={[
             { value: "Nothing right now", label: "All clear" },
             { value: "Calf, right", label: "Right calf" },
@@ -77,7 +91,8 @@ export default async function AboutYouPage() {
           id="best_days"
           label="Best days to run"
           note="I plan your week around these"
-          value="Tue Thu Sat Sun"
+          value={held("best_days")}
+          wasCorrected={wasCorrected("best_days")}
           options={[
             { value: "Tue Thu Sat Sun", label: "Tue, Thu, Sat, Sun" },
             { value: "Mon Wed Fri Sun", label: "Mon, Wed, Fri, Sun" },
@@ -88,7 +103,8 @@ export default async function AboutYouPage() {
           id="motivation"
           label="Motivation"
           note="How I talk to you when it's hard"
-          value="Responds to progress, not pressure"
+          value={held("motivation")}
+          wasCorrected={wasCorrected("motivation")}
           options={[
             { value: "Responds to progress, not pressure", label: "Progress, not pressure" },
             { value: "Wants it straight", label: "Straight talk" },
