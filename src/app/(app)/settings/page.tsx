@@ -65,6 +65,11 @@ export default async function SettingsPage() {
           label="Subscription"
           value={premium ? "Manage or cancel" : "See plans"}
           href="/pricing"
+        />
+        <Row
+          label="Signed in on a new phone?"
+          value="What travels with you"
+          href="/welcome-back"
           last
         />
       </Group>

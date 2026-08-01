@@ -65,8 +65,18 @@ async function PlanContent() {
       </div>
 
       <Link
+        href="/race"
+        className="open-mark mt-auto flex items-center justify-between border-t border-border py-[15px]"
+      >
+        <span className="flex flex-col gap-[3px]">
+          <span className="text-[15px] font-semibold leading-[1.2]">Race day</span>
+          <span className="t-meta">Your race, in four acts</span>
+        </span>
+      </Link>
+
+      <Link
         href="/coach"
-        className="mb-[18px] mt-auto rounded-[18px] bg-muted px-[18px] py-4 text-[13px] leading-[1.5] text-foreground/65 text-pretty"
+        className="mb-[18px] rounded-[18px] bg-muted px-[18px] py-4 text-[13px] leading-[1.5] text-foreground/65 text-pretty"
       >
         {weekKm >= goalKm
           ? "You're past the week's distance already. Two weeks of building left, then you get an easy one."
