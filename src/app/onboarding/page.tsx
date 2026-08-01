@@ -23,21 +23,33 @@ import type { ExperienceLevel } from "@/lib/supabase/types";
 
 type MotivationStyle = "calm" | "tough" | "data";
 
-const TOTAL_STEPS = 5;
-
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState("");
+  /**
+   * R9 · Commitment after value.
+   *
+   * Onboarding forks at question two, and the uncertain branch is the
+   * preferred one. Naming a marathon date is a bigger promise than installing
+   * an app, and nobody should make it to a stranger — so the hesitant runner
+   * answers two questions instead of six, and sets a goal once the coach has
+   * said something true about them.
+   */
+  const [certain, setCertain] = useState<boolean | null>(null);
   const [experience, setExperience] = useState<ExperienceLevel | null>(null);
   const [focus, setFocus] = useState<string | null>(null);
   const [motivation, setMotivation] = useState<MotivationStyle | null>(null);
   const [weeklyKm, setWeeklyKm] = useState<number | null>(null);
 
+  // Two steps for the uncertain path, six for the runner who has a race.
+  const TOTAL_STEPS = certain === false ? 2 : 6;
+
   const canAdvance = [
     name.trim().length > 0,
+    certain !== null,
     experience !== null,
     focus !== null,
     motivation !== null,
@@ -55,8 +67,11 @@ export default function OnboardingPage() {
     try {
       await completeOnboarding({
         displayName: name.trim() || "Runner",
-        experience: experience ?? "intermediate",
-        weeklyGoalKm: weeklyKm ?? 30,
+        // The uncertain runner hasn't declared a level, and guessing "advanced"
+        // at someone would be exactly the overconfidence the critique warns of.
+        experience: experience ?? "beginner",
+        // A modest week, set by the coach rather than demanded of the runner.
+        weeklyGoalKm: weeklyKm ?? (certain === false ? 15 : 30),
         preferredPaceSecPerKm: null,
       });
     } catch {
@@ -126,6 +141,41 @@ export default function OnboardingPage() {
             )}
 
             {step === 1 && (
+              <Step
+                eyebrow="Step 1 of 2"
+                title="Do you already know what you're training for?"
+              >
+                <div className="space-y-3">
+                  <SelectCard
+                    selected={certain === true}
+                    onClick={() => setCertain(true)}
+                    title="Yes — I have a race"
+                    desc="Four questions, then a plan"
+                  />
+                  <SelectCard
+                    selected={certain === false}
+                    onClick={() => setCertain(false)}
+                    title="Not yet — just get me running"
+                    desc="One run together, then we'll talk about it"
+                  />
+
+                  <div className="flex flex-col gap-2 rounded-[18px] bg-card p-[18px]">
+                    <div className="t-label tracking-[0.12em]">
+                      If you&apos;re not sure
+                    </div>
+                    <p className="text-sm leading-[1.55] text-foreground/70 text-pretty">
+                      Then don&apos;t decide now. Run twenty easy minutes with
+                      me this week and I&apos;ll tell you what I think
+                      you&apos;re capable of. Picking a race date is a bigger
+                      promise than installing an app — you shouldn&apos;t make
+                      it to a stranger.
+                    </p>
+                  </div>
+                </div>
+              </Step>
+            )}
+
+            {step === 2 && (
               <Step eyebrow="Your running" title="How would you describe yourself?">
                 <div className="space-y-3">
                   {(
@@ -147,7 +197,7 @@ export default function OnboardingPage() {
               </Step>
             )}
 
-            {step === 2 && (
+            {step === 3 && (
               <Step eyebrow="Your focus" title="What are you training for right now?">
                 <div className="grid grid-cols-2 gap-3">
                   {(
@@ -170,7 +220,7 @@ export default function OnboardingPage() {
               </Step>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <Step eyebrow="Your coach" title="How do you like to be coached?">
                 <div className="space-y-3">
                   {(
@@ -192,7 +242,7 @@ export default function OnboardingPage() {
               </Step>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <Step eyebrow="Your goal" title="How far do you want to run each week?">
                 <div className="grid grid-cols-2 gap-3">
                   {[15, 25, 35, 50].map((km) => (
@@ -222,10 +272,14 @@ export default function OnboardingPage() {
           {saving ? (
             <Loader2 className="animate-spin" />
           ) : step === TOTAL_STEPS - 1 ? (
-            <>
-              <Sparkles className="size-4" />
-              Enter Avenir
-            </>
+            certain === false ? (
+              "Let's just run"
+            ) : (
+              <>
+                <Sparkles className="size-4" />
+                Enter Avenir
+              </>
+            )
           ) : (
             <>
               Continue
@@ -233,6 +287,12 @@ export default function OnboardingPage() {
             </>
           )}
         </Button>
+
+        {step === 1 && certain === false && (
+          <p className="mt-3 text-center text-[11.5px] leading-[1.5] text-muted-foreground">
+            No commitment until the coach has earned it.
+          </p>
+        )}
       </div>
     </div>
   );
