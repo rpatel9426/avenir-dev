@@ -28,10 +28,13 @@ export default async function ProfilePage() {
     <div className="flex min-h-[calc(100dvh-11rem)] flex-col gap-[26px]">
       <header className="flex flex-col gap-3">
         <div className="t-label">Since you started</div>
+        {/* Never fake data, never a shrug — always one way out. */}
         <h1 className="t-voice text-pretty">
           {t.runs === 0
-            ? "Nothing on the record yet. That changes with one run."
-            : `You've run ${t.runs} ${t.runs === 1 ? "time" : "times"} and banked ${t.distanceKm.toFixed(0)} kilometres. That's the whole story.`}
+            ? "Nothing to show yet — you haven't run with me."
+            : t.runs < 4
+              ? `Nothing to show yet — you've run ${t.runs === 1 ? "once" : `${t.runs} times`}.`
+              : `You've run ${t.runs} times and banked ${t.distanceKm.toFixed(0)} kilometres. That's the whole story.`}
         </h1>
       </header>
 
@@ -55,8 +58,17 @@ export default async function ProfilePage() {
           note="Updated after every run"
           value={`${Math.round(t.durationS / 3600)}`}
           unit=" h"
-          last
+          last={t.runs >= 4}
         />
+        {t.runs < 4 && (
+          <StatRow
+            label="Next milestone"
+            note="When trends start to mean something"
+            value={`${4 - t.runs} more`}
+            unit=" runs"
+            last
+          />
+        )}
       </div>
 
       {/* R2 · the model the coach holds of you, readable and correctable. */}

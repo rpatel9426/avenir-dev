@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Loader2, Lock } from "lucide-react";
 import { CoachFeed } from "@/components/run/coach-feed";
 import { formatDistance, formatDuration, formatPace } from "@/lib/utils";
@@ -14,6 +15,48 @@ import type { Workout } from "@/lib/workouts";
  * it enters triage, because the coach may not prescribe through pain.
  */
 const SILENT_CHIPS = ["This feels hard", "How far left?"];
+
+/**
+ * Whether the run still has a live signal.
+ *
+ * Mid-run is the worst possible moment for an error, so this never becomes a
+ * dialog: the value that can't be trusted is dashed out rather than frozen at
+ * a lie, and the coach degrades to what it can still measure. Today this
+ * tracks connectivity; when real GPS replaces the simulation, a lost fix
+ * feeds the same state.
+ */
+function subscribeToConnectivity(onChange: () => void) {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
+
+function useSignal() {
+  const online = useSyncExternalStore(
+    subscribeToConnectivity,
+    () => navigator.onLine,
+    () => true // Assume a signal while rendering on the server.
+  );
+
+  // How long the signal has been gone, so the label states a fact rather than
+  // a vague warning. Only ever set from the interval, never during render.
+  const [secondsLost, setSecondsLost] = useState(0);
+
+  useEffect(() => {
+    if (online) return;
+    let elapsed = 0;
+    const id = setInterval(() => {
+      elapsed += 1;
+      setSecondsLost(elapsed);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [online]);
+
+  return { online, secondsLost };
+}
 
 export function LiveRun({
   workout,
@@ -52,6 +95,7 @@ export function LiveRun({
 }) {
   const paused = status === "paused";
   const km = Math.max(1, Math.floor(metrics.distance / 1000) + 1);
+  const { online, secondsLost } = useSignal();
 
   // Pace is the one number that has to be true, so it never animates and the
   // judgement beside it is a word, not a colour.
@@ -65,13 +109,25 @@ export function LiveRun({
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="relative flex size-[7px]">
-            {!paused && (
+            {!paused && online && (
               <span className="animate-pulse-soft absolute inset-0 rounded-full bg-accent" />
             )}
-            <span className="relative size-[7px] rounded-full bg-accent" />
+            <span
+              className={cn(
+                "relative size-[7px] rounded-full",
+                online ? "bg-accent" : "bg-attention"
+              )}
+            />
           </span>
-          <span className="t-label text-foreground/50">
-            {workout.name} · KM {km}
+          <span
+            className={cn(
+              "t-label",
+              online ? "text-foreground/50" : "text-attention"
+            )}
+          >
+            {online
+              ? `${workout.name} · KM ${km}`
+              : `Signal lost · ${secondsLost}s ago`}
           </span>
         </div>
         <button
@@ -84,19 +140,43 @@ export function LiveRun({
         </button>
       </header>
 
-      {/* The metric. Nothing on this screen is louder. */}
+      {/* The metric. Nothing on this screen is louder — and when it can't be
+          trusted it is dashed out rather than frozen at a lie. */}
       <div className="flex flex-col gap-0.5">
-        <div className="t-metric">{formatPace(metrics.currentPace)}</div>
+        <div className={cn("t-metric", !online && "text-tint-strong")}>
+          {online ? formatPace(metrics.currentPace) : "—:——"}
+        </div>
         <div className="t-label text-tint-strong">
-          Pace /km · {paused ? "PAUSED" : verdict}
+          {online
+            ? `Pace /km · ${paused ? "PAUSED" : verdict}`
+            : "Pace unavailable · still recording"}
         </div>
         <div className="t-label mt-2 tracking-[0.1em] text-tint-strong">
-          {formatDuration(metrics.elapsed)} · {formatDistance(metrics.distance)} KM
+          {formatDuration(metrics.elapsed)} ·{" "}
+          {online
+            ? `${formatDistance(metrics.distance)} KM`
+            : `${formatDistance(metrics.distance)}* KM estimated`}
         </div>
       </div>
 
-      {/* The coach. Voice out, and — for the full plan — voice in. */}
-      <CoachFeed cues={cues} speaking={speaking} listening={handsFree && listening} />
+      {/* The coach. Voice out, and — for the full plan — voice in. Offline it
+          degrades to what it can still measure rather than going silent. */}
+      {online ? (
+        <CoachFeed
+          cues={cues}
+          speaking={speaking}
+          listening={handsFree && listening}
+        />
+      ) : (
+        <div className="flex flex-col gap-2 rounded-[20px] border border-attention/25 bg-attention-wash p-[18px]">
+          <div className="t-label tracking-[0.12em] text-attention">Coach</div>
+          <p className="text-base leading-[1.5] text-foreground/90 text-pretty">
+            Signal&apos;s gone — I&apos;m still counting time and heart rate.
+            Keep the effort where it is and I&apos;ll pick you up on the other
+            side.
+          </p>
+        </div>
+      )}
 
       {premium && (
         <div className="flex flex-col gap-[9px]">
@@ -133,7 +213,13 @@ export function LiveRun({
             {paused ? "Resume" : "Pause"}
           </button>
 
-          {!premium ? (
+          {!online ? (
+            /* Nothing to talk to while offline, so the control says what it
+               can still do rather than sitting there disabled. */
+            <div className="flex h-15 flex-1 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-foreground/75">
+              Coach by effort instead
+            </div>
+          ) : !premium ? (
             <Link
               href="/pricing"
               className="flex h-15 flex-1 items-center justify-center gap-2 rounded-full border border-accent/40 bg-accent-wash text-[15px] font-bold text-accent"

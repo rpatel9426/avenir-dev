@@ -38,24 +38,41 @@ export function WeeklyVolume({
 
   const peak = Math.max(...buckets.map((b) => b.km), thisWeekKm, 1);
 
+  // Three weeks is when a trend starts meaning anything. Before that the chart
+  // keeps its shape — so the screen doesn't reflow later — but claims nothing.
+  const tooEarly = runs.length < 4;
+
   return (
     <section className="flex flex-col gap-[14px]">
       <div className="flex items-baseline justify-between">
         <div className="t-label tracking-[0.12em]">Weekly volume</div>
-        <div className="text-[13px] font-semibold">{thisWeekKm.toFixed(0)} km</div>
+        <div className="text-[13px] font-semibold">
+          {tooEarly ? "—" : `${thisWeekKm.toFixed(0)} km`}
+        </div>
       </div>
 
-      <div className="flex h-24 items-end gap-[7px]">
+      <div className={`flex h-24 items-end gap-[7px] ${tooEarly ? "opacity-50" : ""}`}>
         {buckets.map((b, i) => (
           <div
             key={i}
             className={`flex-1 rounded-[5px] ${
-              b.current ? "bg-foreground" : "bg-foreground/[0.13]"
+              b.current && !tooEarly ? "bg-foreground" : "bg-foreground/[0.08]"
             }`}
-            style={{ height: `${Math.max(6, (b.km / peak) * 100)}%` }}
+            style={{
+              height: tooEarly
+                ? `${b.km > 0 ? 34 : 8}%`
+                : `${Math.max(6, (b.km / peak) * 100)}%`,
+            }}
           />
         ))}
       </div>
+
+      {tooEarly && (
+        <p className="t-body text-muted-foreground">
+          I need about three weeks before trends mean anything. Until then
+          I&apos;d rather show you nothing than something made up.
+        </p>
+      )}
 
       <div className="flex justify-between font-mono text-[9.5px] font-medium text-tint-strong">
         <span>W1</span>
